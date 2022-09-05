@@ -252,7 +252,7 @@ func ExampleOptions() {
 	// Algorithm: SHA512
 	// Digits: 6
 	// Period: 30
-	// Secret Size: 20
+	// Secret Size: 64
 	// Skew: 0
 }
 

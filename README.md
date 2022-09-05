@@ -49,7 +49,7 @@ func Example() {
 }
 ```
 
-- [View more examples and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp#pkg-examples) @ pkg.go.dev
+- [View more examples and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
 
 ## Statuses
 
