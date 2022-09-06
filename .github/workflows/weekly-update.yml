@@ -36,14 +36,14 @@ jobs:
       - name: Update go.mod and go.sum on Go 1.15 env
         run: |
           set -eu
-          docker-compose --file ./.github/docker-compose.yml run tidy
+          docker-compose run tidy
 
       - name: Run tests in all Go versions
         # Test only with the latest version of Go. Since on PR, the CIs will
         # run on all Go versions.
         run: |
           set -eu
-          docker-compose --file ./.github/docker-compose.yml run latest
+          docker-compose run latest
 
       - name: Create Pull Request on Change
         uses: peter-evans/create-pull-request@v4

@@ -234,6 +234,72 @@ func ExampleKey() {
 	// AccountName: alice@example.com
 }
 
+//nolint:funlen // length is 62 lines long but leave it as is due to embedded example
+func ExampleKey_QRCode() {
+	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	// Create a new Key object from a URI
+	key, err := totp.GenerateKeyURI(origin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create QRCode object
+	imgQRCode, err := key.QRCode(totp.FixLevelDefault)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get PNG image in bytes
+	pngImage, err := imgQRCode.PNG(100, 100)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	actual := fmt.Sprintf("%x", pngImage)
+	expect := `89504e470d0a1a0a0000000d4948445200000064000000641000000000051` +
+		`916cb0000040549444154789ce45ced6edb400c9387bcff2b67180a2f324d5272ff` +
+		`95d59f35f7691f4f12a9047bbddf1561afaae3d0dde76bf631bdeddfdffd5f370fd` +
+		`7c5f99b7df473fef1eff973ecf5f50fbb60ec74b01dfbce93eba7cce6633fae778e` +
+		`617dfc39d310a90101e503bdbff7f55357779ba1727e763ec69f231191c9f094ce1` +
+		`3c5c88363b17f4217db7709e23722c20c917077daa1721aa2be4fd789886cdebe9f` +
+		`6e3796a927b4703f8c722ad7f0e74c43c4f198d3d489bb2c5dc28fa6f90a19fd9c4` +
+		`9883c21f2d33d7ec68fb83994b4c52072bcdf8e1339edd1e76c4f7d42df4536bf5e` +
+		`1a2235a8b6291f4c116c52932c32b13d35a28988d4a033f054a6d355e3e5a318e49` +
+		`53f7eda9210f9ffa7f095d3143762f3a7317d4d75f2ac4d71b83c443668a87c33f1` +
+		`afefa08aa67ceef339061150882ebef77665937e983489da57a1f1b12444b675277` +
+		`7f771ceac1f7ccd6bc316aef5b32444746cf6a75ea6eac1906111ab4424ab07dc2f` +
+		`2f6a3da9064eda5ef988d335389fadc9d6ba5a0c22c7f5fd9c9ea8413b383e44b71` +
+		`e1057be837d79510b4dc56f15a9b67fe33ab8966b57d59bcffa31881085e878ce94` +
+		`6f9efa85426ce387578b41c47c3fc232b8d21e7d8eb29e5f7a5b01b25b34aee8262` +
+		`1a2388dd3112ab239a5c8d639cd2947e74b15f93dfbe6edcb54fe948a448ec4d6c1` +
+		`f570bee263773f4942a408b364a7dfc74cd590d3b61a67529fb8ce7dbf2444d4292` +
+		`8fea3fa3677ba067ee5f290afac2421b2b9df657247895f3738fec5c6d7c0a7fc33` +
+		`2621c24cc575e507cecfd867c59291b7b95ac115bd34442625876dea2ebb0c8fa7e` +
+		`b7899aa9c689f4a4264d20865eeee5431615ac5b16336cead9b19b55cd564527c4e` +
+		`6fa87bddc72aff62151b857a586637954616955c1564f22d77baca7fdc3e95f93df` +
+		`be02365f4b33aedd354b545b5b1bdd83adc921029f1d6ea2ebbaa8932a5f19d8264` +
+		`63b5928d4184fc824e2941759fb7999d459f890de33e257d2c0691d7acbd550c67a` +
+		`69800e366ee84fbbc69cf2f4b42a408ffaf21533b1dcea2df661eeea9d6e53e1983` +
+		`c8717f371769b0ed0903c6cf133a684abf87b15f52fb75bc0bc73afdcdc697d1e3b` +
+		`8a68aa01c993444ca5416ddbd76f7d621d7f798b4067e663e1c94d9e157a6b560a4` +
+		`45eeaa53747d5d954fb62c5a5b1222b31edee9f05a565ea63536ebe0b83c1fb1430` +
+		`ca3ddf84e5fc75544702fa791ea7653621059fc9f0f4f3484e24f8a2594f9b6d865` +
+		`f5fbb82444eac1f77c5d13e058cf4e791f8e719ccd7b731a22356873773fd538869` +
+		`ccb190e15c5bb2a568f4ca62257b72d3b9ea2e471785fc1bd33a3d664131a38ae8c` +
+		`26a9bafb113b75c584d197c27ca4d57e6f5ddfc80d6abc9a37712dd6c77d330d116` +
+		`51839d4bd773ae3b29dc8d893f6708ab2b2aaf10b3df233ec6f000000ffffa0404e` +
+		`fb1e0ab59a0000000049454e44ae426082`
+
+	// Assert equal image
+	if expect == actual {
+		fmt.Println("OK")
+	}
+
+	// Output: OK
+}
+
 func ExampleKey_PEM() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
