@@ -8,7 +8,7 @@
 > __Note__ This is a wrapper of the awesome [`github.com/pquerna/otp`](https://github.com/pquerna/otp) package to facilitate the use of TOTP.
 
 ```go
-go get "github.com/rodrigodiez/go-totp"
+go get "github.com/KEINOS/go-totp"
 ```
 
 ```go
