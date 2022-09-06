@@ -54,22 +54,27 @@ func Example() {
 //  Basic methods of totp.Key object
 // --------------------------------------------------
 
-// Generate the current passcode
+// Generate the current passcode.
 passcode, err := key.PassCode()
 
-// Validate the received passcode
+// Validate the received passcode.
 ok, err := key.Validate(passcode)
 
-// Get the secret key in PEM format
+// Get 100x100 px image of QR code as PNG byte data.
+// FixLevelDefault is the 15% of error correction.
+qrCodeObj, err := key.QRCode(totp.FixLevelDefault)
+qrCodePNG, err := qrCodeObj.PNG(100, 100)
+
+// Get the secret key in PEM format text.
 pemKey, err := key.PEM()
 
-// Get the secret key in TOTP URI format
+// Get the secret key in TOTP URI format string.
 uriKey := key.URI()
 
-// Get the secret value in Base32 format
+// Get the secret value in Base32 format string.
 base32Key := key.Secret.Base32()
 
-// Get the secret value in Base62 format
+// Get the secret value in Base62 format string.
 base62Key := key.Secret.Base62()
 ```
 
@@ -95,6 +100,7 @@ base62Key := key.Secret.Base62()
 Any Pull-Request for improvement is welcome!
 
 - Branch to PR: `main`
+- [CONTRIBUTING.md](./.github/CONTRIBUTING.md)
 - [CIs](https://github.com/KEINOS/go-totp/actions) on PR/Push: `unit-tests` `golangci-lint` `codeQL-analysis` `platform-tests`
 - [Security policy](https://github.com/KEINOS/go-totp/security/policy)
 

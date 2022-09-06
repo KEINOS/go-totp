@@ -97,16 +97,16 @@ func TestURI_malformed_uri(t *testing.T) {
 
 	// Methods should return empty string as well
 	for _, test := range []struct {
-		name     string
 		function func() string
+		name     string
 	}{
-		{"Scheme", uri.Scheme},
-		{"Host", uri.Host},
-		{"Issuer", uri.Issuer},
-		{"AccountName", uri.AccountName},
-		{"Secret", uri.Secret().String},
-		{"Algorithm", uri.Algorithm},
-		{"IssuerFromPath", uri.IssuerFromPath},
+		{name: "Scheme", function: uri.Scheme},
+		{name: "Host", function: uri.Host},
+		{name: "Issuer", function: uri.Issuer},
+		{name: "AccountName", function: uri.AccountName},
+		{name: "Secret", function: uri.Secret().String},
+		{name: "Algorithm", function: uri.Algorithm},
+		{name: "IssuerFromPath", function: uri.IssuerFromPath},
 	} {
 		got := test.function()
 

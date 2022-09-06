@@ -19,8 +19,8 @@ const BlockTypeTOTP = "TOTP SECRET KEY"
 
 // Key is a struct that holds the TOTP secret and its options.
 type Key struct {
-	Options Options // Options to be stored.
 	Secret  Secret  // The secret key.
+	Options Options // Options to be stored.
 }
 
 // ----------------------------------------------------------------------------
@@ -184,6 +184,21 @@ func (k *Key) PEM() (string, error) {
 	}
 
 	return string(out), nil
+}
+
+// QRCode returns a QR code image of a specified width and height, suitable for
+// registering a user's TOTP URI with many clients, such as Google-Authenticator.
+func (k *Key) QRCode(fixLevel FixLevel) (*QRCode, error) {
+	if !fixLevel.isValid() {
+		return nil, errors.Errorf("unsupported fix level: %v", fixLevel)
+	}
+
+	qrCode := &QRCode{
+		URI:   URI(k.URI()),
+		Level: fixLevel,
+	}
+
+	return qrCode, nil
 }
 
 // URI returns the key in OTP URI format.
