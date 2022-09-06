@@ -168,6 +168,23 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 }
 
 // ----------------------------------------------------------------------------
+//  Key.QRCode()
+// ----------------------------------------------------------------------------
+
+func TestKey_QRCode_bad_fix_level(t *testing.T) {
+	t.Parallel()
+
+	//nolint:exhaustruct // missing fields are not required for this test
+	key := Key{}
+
+	imgQRCode, err := key.QRCode(FixLevel(100))
+
+	require.Error(t, err, "unsupported fix level should return error")
+	require.Contains(t, err.Error(), "unsupported fix level: 100")
+	require.Nil(t, imgQRCode)
+}
+
+// ----------------------------------------------------------------------------
 //  Key.PEM()
 // ----------------------------------------------------------------------------
 
