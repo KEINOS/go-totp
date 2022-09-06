@@ -4,7 +4,7 @@ package totp
 const (
 	OptionAlgorithmDefault  = Algorithm("SHA512") // Default algorithm
 	OptionPeriodDefault     = uint(30)            // Seconds (rfc6238)
-	OptionSecretSizeDefault = uint(64)            // Bytes. 64 = SHA512
+	OptionSecretSizeDefault = uint(64)            // Bytes. 64
 	OptionSkewDefault       = uint(0)             // Periods
 	OptionDigitsDefault     = Digits(6)           // Six digits
 )
@@ -23,7 +23,7 @@ type Options struct {
 	Algorithm Algorithm
 	// Period is the number of seconds a TOTP hash is valid for. (Default: 30 seconds)
 	Period uint
-	// SecretSize is the size of the generated Secret. (Default: 64 bytes, but adjusted to the algorithm)
+	// SecretSize is the size of the generated Secret. (Default: 64 bytes)
 	SecretSize uint
 	// Skew is the periods before or after the current time to allow.
 	// Value of 1 allows up to Period of either side of the specified time.
@@ -48,18 +48,7 @@ func (opts *Options) SetDefault() {
 	}
 
 	if opts.SecretSize == 0 {
-		switch opts.Algorithm {
-		case Algorithm("MD5"):
-			opts.SecretSize = 16
-		case Algorithm("SHA1"):
-			opts.SecretSize = 20
-		case Algorithm("SHA256"):
-			opts.SecretSize = 32
-		case OptionAlgorithmDefault:
-			fallthrough
-		default:
-			opts.SecretSize = OptionSecretSizeDefault
-		}
+		opts.SecretSize = OptionSecretSizeDefault
 	}
 
 	if opts.Digits == 0 {

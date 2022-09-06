@@ -62,6 +62,8 @@ func (u URI) Algorithm() string {
 
 // Check returns true if the URI is correctly formatted and required fields are
 // set.
+//
+//nolint:cyclop // cyclomatic complexity is 11 but it's fine
 func (u URI) Check() error {
 	// Check required fields
 	switch {
@@ -86,6 +88,16 @@ func (u URI) Check() error {
 	// Check supported algorithms
 	if algo := Algorithm(u.Algorithm()); !algo.IsSupported() {
 		return errors.Errorf("unsupported algorithm: %s", algo)
+	}
+
+	// Check length of secret. According to the RFC4226, the secret MUST be at
+	// least 128 bits = 16 bytes.
+	// See:
+	//   https://www.rfc-editor.org/rfc/rfc4226#section-4
+	minLenBytes := 16
+
+	if len(u.Secret().Bytes()) < minLenBytes {
+		return errors.New("secret is too short. it should be at least 16 bytes")
 	}
 
 	return nil

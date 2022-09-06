@@ -70,6 +70,11 @@ var badURIs = []struct {
 			"digits=12&issuer=Example.com&period=60",
 		"missing secret",
 	},
+	{
+		"otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+			"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYW",
+		"secret is too short. it should be at least 16 bytes",
+	},
 }
 
 // ----------------------------------------------------------------------------
@@ -132,11 +137,11 @@ func TestURI_AccountName_name_in_label_with_no_colon(t *testing.T) {
 func TestURI_Check_error_msg(t *testing.T) {
 	t.Parallel()
 
-	for _, tt := range badURIs {
+	for i, tt := range badURIs {
 		uri := URI(tt.uri)    // Cast the string to URI type
 		result := uri.Check() // Check the URI
 
-		require.Error(t, result, "got nil; want error: %v; issuer: %v", tt.msgErr, uri.Issuer())
+		require.Error(t, result, "badURIs[%v] URI: %v", i, tt.uri)
 		require.Contains(t, result.Error(), tt.msgErr)
 	}
 }
