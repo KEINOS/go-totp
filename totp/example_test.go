@@ -116,18 +116,18 @@ func ExampleAlgorithm_IsSupported() {
 func ExampleDigits() {
 	// Create a new Digits object from a number. Choices are:
 	//   6 and 8.
-	digits := totp.NewDigits(8)
+	digits := totp.NewDigitsInt(8)
 
 	fmt.Println("Digits:", digits)
 	fmt.Println("Digits ID:", digits.OTPDigits())
 
 	// DigitsEight is equivalent to NewDigits(8)
-	if totp.DigitsEight == totp.NewDigits(8) {
+	if totp.DigitsEight == totp.NewDigitsInt(8) {
 		fmt.Println("Digit 8", "OK")
 	}
 
 	// DigitsSix is equivalent to NewDigits(6)
-	if totp.DigitsSix == totp.NewDigits(6) {
+	if totp.DigitsSix == totp.NewDigitsInt(6) {
 		fmt.Println("Digit 6", "OK")
 	}
 
@@ -136,6 +136,49 @@ func ExampleDigits() {
 	// Digits ID: 8
 	// Digit 8 OK
 	// Digit 6 OK
+}
+
+// ----------------------------------------------------------------------------
+//  Function: GenerateKeyPEM
+// ----------------------------------------------------------------------------
+
+func ExampleGenerateKeyPEM() {
+	pemData := `
+-----BEGIN TOTP SECRET KEY-----
+Account Name: alice@example.com
+Algorithm: SHA1
+Digits: 8
+Issuer: Example.com
+Period: 30
+Secret Size: 64
+Skew: 0
+
+gX7ff3VlT4sCakCjQH69ZQxTbzs=
+-----END TOTP SECRET KEY-----`
+
+	key, err := totp.GenerateKeyPEM(pemData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("AccountName:", key.Options.AccountName)
+	fmt.Println("Algorithm:", key.Options.Algorithm)
+	fmt.Println("Digits:", key.Options.Digits)
+	fmt.Println("Issuer:", key.Options.Issuer)
+	fmt.Println("Period:", key.Options.Period)
+	fmt.Println("Secret Size:", key.Options.SecretSize)
+	fmt.Println("Skew:", key.Options.Skew)
+	fmt.Println("Secret:", key.Secret.Base32())
+
+	// Output:
+	// AccountName: alice@example.com
+	// Algorithm: SHA1
+	// Digits: 8
+	// Issuer: Example.com
+	// Period: 30
+	// Secret Size: 64
+	// Skew: 0
+	// Secret: QF7N673VMVHYWATKICRUA7V5MUGFG3Z3
 }
 
 // ----------------------------------------------------------------------------
@@ -189,6 +232,55 @@ func ExampleKey() {
 	// Output:
 	// Issuer: alice@example.com
 	// AccountName: alice@example.com
+}
+
+func ExampleKey_PEM() {
+	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	key, err := totp.GenerateKeyURI(origin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyPEM, err := key.PEM()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(keyPEM)
+
+	// Output:
+	// -----BEGIN TOTP SECRET KEY-----
+	// Account Name: alice@example.com
+	// Algorithm: SHA1
+	// Digits: 6
+	// Issuer: Example.com
+	// Period: 30
+	// Secret Size: 20
+	// Skew: 0
+	//
+	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
+	// -----END TOTP SECRET KEY-----
+}
+
+func ExampleKey_URI() {
+	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	key, err := totp.GenerateKeyURI(origin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	expect := origin
+	actual := key.URI() // regenerate URI
+
+	if expect == actual {
+		fmt.Println("URI returned as expected")
+	}
+
+	// Output: URI returned as expected
 }
 
 // ----------------------------------------------------------------------------
@@ -298,6 +390,27 @@ func ExampleSecret() {
 	// Get as base32 encoded string: MZXW6IDCMFZCAYTVPJ5A
 	// String() is equivalent to Base32()
 	// Two secrets are the same.
+}
+
+// ----------------------------------------------------------------------------
+//  Function: StrToUint
+// ----------------------------------------------------------------------------
+
+func ExampleStrToUint() {
+	str1 := "1234567890"
+	uint1 := totp.StrToUint(str1)
+
+	fmt.Printf("uint1: %v, type: %T\n", uint1, uint1)
+
+	// Note that number that overflows the uint will return 0.
+	str2 := fmt.Sprintf("%d", uint64(0xFFFFFFFF+1))
+	uint2 := totp.StrToUint(str2)
+
+	fmt.Printf("uint2: %v, type: %T\n", uint2, uint2)
+
+	// Output:
+	// uint1: 1234567890, type: uint
+	// uint2: 0, type: uint
 }
 
 // ----------------------------------------------------------------------------

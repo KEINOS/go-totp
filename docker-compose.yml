@@ -9,9 +9,12 @@
 # missing "go.mod" file.
 #
 # - Recommended usage:
-#     $ docker compose run v1_15
-# - To update go.mod:
+#   - To update go.mod:
 #     $ docker compose run tidy
+#   - To test:
+#     $ docker compose run v1_15
+#   - Lint check and static analysis:
+#     $ docker compose run lint
 # - NOT recommended to run all tests at once whith "up":
 #     $ docker compose up
 version: "3.9"
@@ -30,6 +33,14 @@ services:
     volumes:
       - .:/workspaces
     entrypoint: [ "./.github/run_go_mod_tidy.sh" ]
+  # Run latest golangci-lint
+  lint:
+    image: golangci/golangci-lint:latest
+    working_dir: /workspaces
+    volumes:
+      - .:/workspaces
+      - GO_PKG_MOD:/go/pkg/mod
+    entrypoint: golangci-lint run
   # Service v1_15 runs the tests on Go v1.15
   v1_15:
     build:

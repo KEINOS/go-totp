@@ -1,6 +1,10 @@
 package totp
 
-import "github.com/pquerna/otp"
+import (
+	"fmt"
+
+	"github.com/pquerna/otp"
+)
 
 // ----------------------------------------------------------------------------
 //  Type: Digits
@@ -21,9 +25,15 @@ const (
 //  Constructor
 // ----------------------------------------------------------------------------
 
-// NewDigits returns a new Digits object from the given value.
-func NewDigits(digits int) Digits {
+// NewDigitsInt returns a new Digits object from the given value.
+func NewDigitsInt(digits int) Digits {
 	return Digits(uint(digits))
+}
+
+// NewDigitsStr returns a new Digits object from the given string in decimal
+// format.
+func NewDigitsStr(digits string) Digits {
+	return Digits(StrToUint(digits))
 }
 
 // ----------------------------------------------------------------------------
@@ -41,4 +51,9 @@ func (d Digits) OTPDigits() otp.Digits {
 	}
 
 	return otp.DigitsSix
+}
+
+// String returns the string representation of the Digits.
+func (d Digits) String() string {
+	return fmt.Sprintf("%d", d)
 }

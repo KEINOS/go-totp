@@ -49,6 +49,30 @@ func Example() {
 }
 ```
 
+```go
+// --------------------------------------------------
+//  Basic methods of totp.Key object
+// --------------------------------------------------
+
+// Generate the current passcode
+passcode, err := key.PassCode()
+
+// Validate the received passcode
+ok, err := key.Validate(passcode)
+
+// Get the secret key in PEM format
+pemKey, err := key.PEM()
+
+// Get the secret key in TOTP URI format
+uriKey := key.URI()
+
+// Get the secret value in Base32 format
+base32Key := key.Secret.Base32()
+
+// Get the secret value in Base62 format
+base62Key := key.Secret.Base62()
+```
+
 - [View more examples and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
 
 ## Statuses

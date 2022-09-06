@@ -1,11 +1,17 @@
 package totp
 
 import (
+	"encoding/pem"
+	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
 )
+
+// BlockTypeTOTP is the type of a PEM encoded data block.
+const BlockTypeTOTP = "TOTP SECRET KEY"
 
 // ----------------------------------------------------------------------------
 //  Type: Key
@@ -74,6 +80,34 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 	return key, nil
 }
 
+// GenerateKeyPEM creates a new Key object from a PEM formatted string.
+func GenerateKeyPEM(pemKey string) (*Key, error) {
+	block, rest := pem.Decode([]byte(pemKey))
+
+	if block != nil && block.Type == BlockTypeTOTP {
+		key := &Key{
+			Secret: block.Bytes,
+			Options: Options{
+				Issuer:      block.Headers["Issuer"],
+				AccountName: block.Headers["Account Name"],
+				Algorithm:   Algorithm(block.Headers["Algorithm"]),
+				Period:      StrToUint(block.Headers["Period"]),
+				SecretSize:  StrToUint(block.Headers["Secret Size"]),
+				Skew:        StrToUint(block.Headers["Skew"]),
+				Digits:      NewDigitsStr(block.Headers["Digits"]),
+			},
+		}
+
+		return key, nil
+	}
+
+	if block != nil && len(rest) > 0 {
+		return GenerateKeyPEM(string(rest))
+	}
+
+	return nil, errors.New("failed to decode PEM block containing TOTP secret key")
+}
+
 // GenerateKeyURI creates a new Key object from an TOTP uri/url.
 //
 // The URL format is documented here:
@@ -124,6 +158,56 @@ func (k *Key) PassCode() (string, error) {
 			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
 		},
 	)
+}
+
+//nolint:gochecknoglobals // allow private global variable to mock during tests
+var pemEncodeToMemory = pem.EncodeToMemory
+
+// PEM returns the key in PEM formatted string.
+func (k *Key) PEM() (string, error) {
+	out := pemEncodeToMemory(&pem.Block{
+		Type: BlockTypeTOTP,
+		Headers: map[string]string{
+			"Account Name": k.Options.AccountName,
+			"Algorithm":    k.Options.Algorithm.String(),
+			"Digits":       k.Options.Digits.String(),
+			"Issuer":       k.Options.Issuer,
+			"Period":       fmt.Sprintf("%d", k.Options.Period),
+			"Secret Size":  fmt.Sprintf("%d", k.Options.SecretSize),
+			"Skew":         fmt.Sprintf("%d", k.Options.Skew),
+		},
+		Bytes: k.Secret.Bytes(),
+	})
+
+	if out == nil {
+		return "", errors.New("failed to encode key to PEM")
+	}
+
+	return string(out), nil
+}
+
+// URI returns the key in OTP URI format.
+//
+// It re-generates the URI from the values stored in the Key object and will not
+// use the original URI.
+func (k *Key) URI() string {
+	queryVal := url.Values{}
+
+	queryVal.Set("issuer", k.Options.Issuer)
+	queryVal.Set("algorithm", k.Options.Algorithm.String())
+	queryVal.Set("digits", k.Options.Digits.String())
+	queryVal.Set("secret", k.Secret.Base32())
+	queryVal.Set("period", fmt.Sprintf("%d", k.Options.Period))
+
+	//nolint:exhaustruct // other fields are left blank on purpose
+	urlOut := url.URL{
+		Scheme:   "otpauth",
+		Host:     "totp",
+		Path:     "/" + k.Options.Issuer + ":" + k.Options.AccountName,
+		RawQuery: queryVal.Encode(),
+	}
+
+	return urlOut.String()
 }
 
 // Validate returns true if the given passcode is valid for the current time.
