@@ -24,12 +24,7 @@ func Example() {
 	}
 
 	// Validate the passcode
-	valid, err := key.Validate(passcode)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if valid {
+	if key.Validate(passcode) {
 		fmt.Println("Passcode is valid")
 	}
 
@@ -61,12 +56,7 @@ func Example_advanced() {
 	}
 
 	// Validate the passcode
-	valid, err := key.Validate(passcode)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if valid {
+	if key.Validate(passcode) {
 		fmt.Println("Passcode is valid")
 	}
 
@@ -350,6 +340,40 @@ func ExampleKey_URI() {
 }
 
 // ----------------------------------------------------------------------------
+//  Func: NewOptions()
+// ----------------------------------------------------------------------------
+
+func ExampleNewOptions() {
+	// Create a new Options object with default values.
+	opt1, err := totp.NewOptions("Example.com", "alice@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// For default values, see the the example of Options type.
+	fmt.Printf("Type: %T\n", opt1)
+	fmt.Printf("Issuer: %s\n", opt1.Issuer)
+	fmt.Printf("Account Name: %s\n", opt1.AccountName)
+
+	// Issuer and Account Name are required.
+	opt2, err := totp.NewOptions("", "")
+	// Assert error
+	if err != nil {
+		fmt.Println("Error msg:", err.Error())
+	}
+	// Assert nil on error
+	if opt2 != nil {
+		log.Fatal("NewOptions() should return nil on error")
+	}
+
+	// Output:
+	// Type: *totp.Options
+	// Issuer: Example.com
+	// Account Name: alice@example.com
+	// Error msg: issuer and accountName are required
+}
+
+// ----------------------------------------------------------------------------
 //  Func: NewSecretBytes()
 // ----------------------------------------------------------------------------
 
@@ -388,6 +412,8 @@ func ExampleOptions() {
 
 	options.SetDefault()
 
+	/* List all option and their default values. */
+
 	// Issuer is the name of the service who issued the secret.
 	fmt.Println("Issuer:", options.Issuer)
 	// Name of the owner of the secret key.
@@ -407,10 +433,10 @@ func ExampleOptions() {
 	// Output:
 	// Issuer: Example.com
 	// AccountName: alice@example.com
-	// Algorithm: SHA512
+	// Algorithm: SHA1
 	// Digits: 6
 	// Period: 30
-	// Secret Size: 64
+	// Secret Size: 128
 	// Skew: 0
 }
 
@@ -527,4 +553,43 @@ func ExampleURI_IssuerFromPath() {
 	fmt.Println(uri.IssuerFromPath())
 
 	// Output: Example.com
+}
+
+// ----------------------------------------------------------------------------
+//  Func: Validate()
+// ----------------------------------------------------------------------------
+
+// Validate function is a short hand of totp.Key.Validate() functionality.
+func ExampleValidate() {
+	// Create a new Key object via URI to obtain the current passcode.
+	uri := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	key, err := totp.GenerateKeyURI(uri)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get values needed for the function arguments.
+	options := key.Options
+	secret := key.Secret.Base32()
+
+	passcode, err := key.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate the passcode via Key.Validate() method.
+	if key.Validate(passcode) {
+		fmt.Println("Passcode is valid. Checked via Key.Validate() method.")
+	}
+
+	// Validate the passcode via Validate() function.
+	if totp.Validate(passcode, secret, options) {
+		fmt.Println("Passcode is valid. Checked via Validate() function.")
+	}
+
+	// Output:
+	// Passcode is valid. Checked via Key.Validate() method.
+	// Passcode is valid. Checked via Validate() function.
 }

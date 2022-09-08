@@ -226,17 +226,6 @@ func (k *Key) URI() string {
 }
 
 // Validate returns true if the given passcode is valid for the current time.
-func (k *Key) Validate(passcode string) (bool, error) {
-	//nolint:wrapcheck // we won't wrap the error here
-	return totp.ValidateCustom(
-		passcode,
-		k.Secret.Base32(),
-		time.Now().UTC(),
-		totp.ValidateOpts{
-			Period:    k.Options.Period,
-			Skew:      k.Options.Skew,
-			Digits:    k.Options.Digits.OTPDigits(),
-			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
-		},
-	)
+func (k *Key) Validate(passcode string) bool {
+	return Validate(passcode, k.Secret.Base32(), k.Options)
 }

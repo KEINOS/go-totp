@@ -5,7 +5,11 @@
 
 `go-totp` is a simple Go package to implement [Timebased-One-Time-Password](https://en.wikipedia.org/wiki/Time-based_one-time_password) authentication functionality, a.k.a. `TOTP`, to the Go app.
 
+- [Compatible Authenticator apps](https://github.com/KEINOS/go-totp/wiki/List-of-compatibility) | Wiki @ GitHub
+
 > __Note__ This is a wrapper of the awesome [`github.com/pquerna/otp`](https://github.com/pquerna/otp) package to facilitate the use of TOTP.
+
+## Usage
 
 ```go
 go get "github.com/KEINOS/go-totp"
@@ -54,16 +58,17 @@ func Example() {
 //  Basic methods of totp.Key object
 // --------------------------------------------------
 
-// Generate the current passcode.
+// Generate the current passcode. Which is a string of
+// 6 digit numbers and valid for 30 seconds.
 passcode, err := key.PassCode()
 
 // Validate the received passcode.
-ok, err := key.Validate(passcode)
+ok := key.Validate(passcode)
 
 // Get 100x100 px image of QR code as PNG byte data.
 // FixLevelDefault is the 15% of error correction.
 qrCodeObj, err := key.QRCode(totp.FixLevelDefault)
-qrCodePNG, err := qrCodeObj.PNG(100, 100)
+pngBytes, err := qrCodeObj.PNG(100, 100)
 
 // Get the secret key in PEM format text.
 pemKey, err := key.PEM()

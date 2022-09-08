@@ -53,11 +53,11 @@ func TestAlgorithm_OTPAlgorithm(t *testing.T) {
 		algo  string
 		otpID int
 	}{
-		{"SHA1", 0},
+		{"SHA1", 0}, // SHA1 is the default algorithm.
 		{"SHA256", 1},
 		{"SHA512", 2},
 		{"MD5", 3},
-		{"UNKNOWN", 2}, // Unsupported algorithm should return SHA512.
+		{"UNKNOWN", 0}, // Unsupported algorithm should return SHA1.
 	} {
 		algo := Algorithm(test.algo)
 

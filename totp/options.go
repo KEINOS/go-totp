@@ -1,12 +1,14 @@
 package totp
 
+import "github.com/pkg/errors"
+
 // Constants for the default values of the options.
 const (
-	OptionAlgorithmDefault  = Algorithm("SHA512") // Default algorithm
-	OptionPeriodDefault     = uint(30)            // Seconds (rfc6238)
-	OptionSecretSizeDefault = uint(64)            // Bytes. 64
-	OptionSkewDefault       = uint(0)             // Periods
-	OptionDigitsDefault     = Digits(6)           // Six digits
+	OptionAlgorithmDefault  = Algorithm("SHA1") // Google Authenticator does not work other than SHA1.
+	OptionPeriodDefault     = uint(30)          // 30 seconds is recommended in RFC-6238.
+	OptionSecretSizeDefault = uint(128)         // 128 Bytes.
+	OptionSkewDefault       = uint(0)           // ± Periods. No tolerance.
+	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
 )
 
 // ----------------------------------------------------------------------------
@@ -23,7 +25,7 @@ type Options struct {
 	Algorithm Algorithm
 	// Period is the number of seconds a TOTP hash is valid for. (Default: 30 seconds)
 	Period uint
-	// SecretSize is the size of the generated Secret. (Default: 64 bytes)
+	// SecretSize is the size of the generated Secret. (Default: 128 bytes)
 	SecretSize uint
 	// Skew is the periods before or after the current time to allow.
 	// Value of 1 allows up to Period of either side of the specified time.
@@ -31,6 +33,26 @@ type Options struct {
 	Skew uint
 	// Digits to request TOTP code. DigitsSix or DigitsEight. (Default: DigitsSix)
 	Digits Digits
+}
+
+// ----------------------------------------------------------------------------
+//  Constructor
+// ----------------------------------------------------------------------------
+
+// NewOptions returns a new Options struct with the default values.
+// Issuer and AccountName are required.
+func NewOptions(issuer, accountName string) (*Options, error) {
+	if issuer == "" || accountName == "" {
+		return nil, errors.New("issuer and accountName are required")
+	}
+
+	opt := new(Options)
+	opt.SetDefault()
+
+	opt.Issuer = issuer
+	opt.AccountName = accountName
+
+	return opt, nil
 }
 
 // ----------------------------------------------------------------------------

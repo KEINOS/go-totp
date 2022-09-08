@@ -85,16 +85,16 @@ func (algo Algorithm) ID() int {
 	case cSHA256:
 		return int(otp.AlgorithmSHA256)
 	case cSHA512:
-		fallthrough
-	default:
 		return int(otp.AlgorithmSHA512)
+	default:
+		return int(otp.AlgorithmSHA1)
 	}
 }
 
 // IsSupported returns true if the algorithm is supported.
 func (algo Algorithm) IsSupported() bool {
 	switch algo {
-	case "MD5", "SHA1", "SHA256", OptionAlgorithmDefault:
+	case "MD5", OptionAlgorithmDefault, "SHA256", "SHA512":
 		return true
 	}
 
@@ -109,14 +109,14 @@ func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
 	switch algo {
 	case "MD5":
 		return otp.AlgorithmMD5
-	case "SHA1":
+	case OptionAlgorithmDefault: // SHA1
 		return otp.AlgorithmSHA1
 	case "SHA256":
 		return otp.AlgorithmSHA256
-	case OptionAlgorithmDefault: // Equivalent to SHA512.
-		fallthrough
-	default:
+	case "SHA512":
 		return otp.AlgorithmSHA512
+	default:
+		return otp.AlgorithmSHA1
 	}
 }
 
