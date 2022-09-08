@@ -40,10 +40,21 @@ func TestAlgorithm_IsSupported_golden(t *testing.T) {
 	} {
 		// NewAlgorithm()
 		algo, err := NewAlgorithmStr(tt)
-		require.NoError(t, err)
 
+		require.NoError(t, err)
 		require.True(t, algo.IsSupported(), "supported algorithm should return true")
 	}
+}
+
+func TestAlgorithm_ID_unsupported(t *testing.T) {
+	t.Parallel()
+
+	algo := Algorithm("BLAKE3")
+
+	expect := 0
+	actual := algo.ID()
+
+	require.Equal(t, expect, actual, "unsupported algorithm should return 0 which is the default algorithm")
 }
 
 func TestAlgorithm_OTPAlgorithm(t *testing.T) {
