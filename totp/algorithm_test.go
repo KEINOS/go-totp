@@ -51,10 +51,10 @@ func TestAlgorithm_ID_unsupported(t *testing.T) {
 
 	algo := Algorithm("BLAKE3")
 
-	expect := 0
+	expect := -1
 	actual := algo.ID()
 
-	require.Equal(t, expect, actual, "unsupported algorithm should return 0 which is the default algorithm")
+	require.Equal(t, expect, actual, "unsupported algorithm should return -1 which is the unknown algorithm")
 }
 
 func TestAlgorithm_OTPAlgorithm(t *testing.T) {
@@ -68,7 +68,7 @@ func TestAlgorithm_OTPAlgorithm(t *testing.T) {
 		{"SHA256", 1},
 		{"SHA512", 2},
 		{"MD5", 3},
-		{"UNKNOWN", 0}, // Unsupported algorithm should return SHA1.
+		{"UNKNOWN", -1}, // Unsupported algorithm should return -1. See issue #6.
 	} {
 		algo := Algorithm(test.algo)
 

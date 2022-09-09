@@ -350,7 +350,7 @@ func ExampleNewOptions() {
 		log.Fatal(err)
 	}
 
-	// For default values, see the the example of Options type.
+	// For default values, see the example of Options type.
 	fmt.Printf("Type: %T\n", opt1)
 	fmt.Printf("Issuer: %s\n", opt1.Issuer)
 	fmt.Printf("Account Name: %s\n", opt1.AccountName)
