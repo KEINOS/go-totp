@@ -71,10 +71,11 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 // Undefined ID will always return 2 (SHA512).
 func (algo Algorithm) ID() int {
 	const (
-		cMD5    = "MD5"
-		cSHA1   = "SHA1"
-		cSHA256 = "SHA256"
-		cSHA512 = "SHA512"
+		cMD5            = "MD5"
+		cSHA1           = "SHA1"
+		cSHA256         = "SHA256"
+		cSHA512         = "SHA512"
+		UnsupportedAlgo = -1 // see issue #6
 	)
 
 	switch algo {
@@ -87,7 +88,7 @@ func (algo Algorithm) ID() int {
 	case cSHA512:
 		return int(otp.AlgorithmSHA512)
 	default:
-		return int(otp.AlgorithmSHA1)
+		return UnsupportedAlgo
 	}
 }
 
@@ -116,7 +117,7 @@ func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
 	case "SHA512":
 		return otp.AlgorithmSHA512
 	default:
-		return otp.AlgorithmSHA1
+		return otp.Algorithm(-1) // fix: issue #6
 	}
 }
 
