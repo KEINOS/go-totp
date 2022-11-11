@@ -38,7 +38,7 @@ jobs:
           set -eu
           docker-compose run tidy
 
-      - name: Run tests in all Go versions
+      - name: Run tests
         # Test only with the latest version of Go. Since on PR, the CIs will
         # run on all Go versions.
         run: |
