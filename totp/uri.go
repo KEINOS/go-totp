@@ -15,8 +15,9 @@ import (
 // URI is a string that holds the TOTP URI.
 //
 // All methods are calculated each time they are called. Therefore, it is
-// recommended to store them. Note also that the values are not validated. For
-// example, "Digits" may return any value.
+// recommended to store them.
+// Note also that the values are not validated. For example, `Digits()` method
+// may return any value.
 type URI string
 
 // ----------------------------------------------------------------------------
