@@ -59,7 +59,7 @@ func Example() {
 // --------------------------------------------------
 
 // Generate the current passcode. Which is a string of
-// 6 digit numbers and valid for 30 seconds.
+// 6 digit numbers and valid for 30 seconds by default.
 passcode, err := key.PassCode()
 
 // Validate the received passcode.
