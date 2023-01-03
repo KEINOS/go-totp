@@ -40,12 +40,7 @@ func Example() {
     }
 
     // Validate the passcode
-    isValid, err := key.Validate(passcode)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    if isValid {
+    if key.Validate(passcode) {
         fmt.Println("Passcode is valid")
     }
 
