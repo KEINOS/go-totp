@@ -103,9 +103,11 @@ Any Pull-Request for improvement is welcome!
 - [CONTRIBUTING.md](./.github/CONTRIBUTING.md)
 - [CIs](https://github.com/KEINOS/go-totp/actions) on PR/Push: `unit-tests` `golangci-lint` `codeQL-analysis` `platform-tests`
 - [Security policy](https://github.com/KEINOS/go-totp/security/policy)
+- Help wanted
+    - https://github.com/KEINOS/go-totp/issues
 
 ## License, copyright and credits
 
-- MIT, Copyright (c) 2022 [KEINOS and the go-totp contributors](https://github.com/KEINOS/go-totp/graphs/contributors).
+- MIT, Copyright (c) 2022 [The go-totp contributors](https://github.com/KEINOS/go-totp/graphs/contributors).
 - This Go package relies heavily on support from the `github.com/pquerna/otp` package.
   - [https://github.com/pquerna/otp](https://github.com/pquerna/otp) with [Apache-2.0 license](https://github.com/pquerna/otp/blob/master/LICENSE)
