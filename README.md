@@ -47,9 +47,13 @@ func Example() {
     // Output: Passcode is valid
 }
 ```
+
 - [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
 ```go
+// Generate a secret for TOTP (totp.Key object).
+key, err := totp.GenerateKey(Issuer, AccountName)
+
 // --------------------------------------------------
 //  Basic methods of totp.Key object
 // --------------------------------------------------
@@ -79,7 +83,7 @@ base32Key := key.Secret.Base32()
 base62Key := key.Secret.Base62()
 ```
 
-- [View more examples and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
+- [View **more examples** and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
 
 ## Statuses
 
