@@ -47,6 +47,7 @@ func Example() {
     // Output: Passcode is valid
 }
 ```
+- [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
 ```go
 // --------------------------------------------------
