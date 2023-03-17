@@ -1,3 +1,4 @@
+/*
 # Simple CLI App of go-totp
 
 This is a simple example usage of [go-totp](https://pkg.go.dev/github.com/KEINOS/go-totp/totp) package as a CLI app.
@@ -28,18 +29,20 @@ Valid Period: 30
 Enter Passcode: 366258
 👍 Passcode is valid!
 
-  Expect passcode: 366258
+	Expect passcode: 366258
 
 Enter Passcode: 366258
 👍 Passcode is valid!
 
-  Expect passcode: 366258
+	Expect passcode: 366258
 
 Enter Passcode: 366258
 👎 Passcode is invalid!
 
-  Expect passcode: 746280
+	Expect passcode: 746280
 
 Enter Passcode: ^Csignal: interrupt
 $
 ```
+*/
+package main
