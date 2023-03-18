@@ -129,10 +129,10 @@ func ExampleDigits() {
 }
 
 // ----------------------------------------------------------------------------
-//  Function: GenerateKeyPEM
+//  Function: GenKeyFromPEM
 // ----------------------------------------------------------------------------
 
-func ExampleGenerateKeyPEM() {
+func ExampleGenKeyFromPEM() {
 	pemData := `
 -----BEGIN TOTP SECRET KEY-----
 Account Name: alice@example.com
@@ -146,7 +146,7 @@ Skew: 0
 gX7ff3VlT4sCakCjQH69ZQxTbzs=
 -----END TOTP SECRET KEY-----`
 
-	key, err := totp.GenerateKeyPEM(pemData)
+	key, err := totp.GenKeyFromPEM(pemData)
 	if err != nil {
 		log.Fatal(err)
 	}

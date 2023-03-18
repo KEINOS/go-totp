@@ -1,21 +1,24 @@
 # =============================================================================
 #  Docker Compose file for testing on Go versions 1.15 to the latest.
 # =============================================================================
-# It is recommended to run specifying a specific Go version and not at once.
+# - Recommended usage:
+#   - To update go.mod:
+#     $ docker compose run tidy
+#
+#   - To unit test:
+#     $ docker compose run v1_15
+#
+#   - Lint check and static analysis:
+#     $ docker compose run lint
+#
+# It is recommended to run specifying a specific service and not at once.
 #
 # Since the service `tidy` will update/re-write the "go.mod" file to the latest
 # module version, during it's process the "go.mod" file will be gone temporarily.
 # Thus, `docker compose up` will cause failure in the other container because of
 # missing "go.mod" file.
 #
-# - Recommended usage:
-#   - To update go.mod:
-#     $ docker compose run tidy
-#   - To test:
-#     $ docker compose run v1_15
-#   - Lint check and static analysis:
-#     $ docker compose run lint
-# - NOT recommended to run all tests at once whith "up":
+# - NOT recommended way:
 #     $ docker compose up
 version: "3.9"
 
@@ -33,6 +36,7 @@ services:
     volumes:
       - .:/workspaces
     entrypoint: [ "./.github/run_go_mod_tidy.sh" ]
+
   # Run latest golangci-lint
   lint:
     image: golangci/golangci-lint:latest
@@ -41,6 +45,7 @@ services:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
     entrypoint: golangci-lint run
+
   # Service v1_15 runs the tests on Go v1.15
   v1_15:
     build:
@@ -51,6 +56,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
+
   # Service v1_16 runs the tests on Go v1.16
   v1_16:
     build:
@@ -61,6 +67,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
+
   # Service v1_17 runs the tests on Go v1.17
   v1_17:
     build:
@@ -71,6 +78,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
+
   # Service v1_18 runs the tests on Go v1.18
   v1_18:
     build:
@@ -81,6 +89,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
+
   # Service v1_19 runs the tests on Go v1.19
   v1_19:
     build:
@@ -91,6 +100,7 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
+
   # Service latest runs the tests on latest Go docker image
   latest:
     build:

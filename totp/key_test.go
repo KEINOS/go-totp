@@ -61,10 +61,38 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 }
 
 // ----------------------------------------------------------------------------
-//  GenerateKeyPEM()
+//  GenerateKeyPEM() : Deprecated function. This test will be removed in v1.0.0
 // ----------------------------------------------------------------------------
 
-func TestGenerateKeyPEM_bad_pem_file(t *testing.T) {
+func TestGenerateKeyPEM(t *testing.T) {
+	t.Parallel()
+
+	pemData := `
+-----BEGIN TOTP SECRET KEY-----
+Account Name: alice@example.com
+Algorithm: SHA1
+Digits: 8
+Issuer: Example.com
+Period: 30
+Secret Size: 64
+Skew: 0
+
+gX7ff3VlT4sCakCjQH69ZQxTbzs=
+-----END TOTP SECRET KEY-----`
+
+	key, err := GenerateKeyPEM(pemData)
+
+	require.NoError(t, err, "PEM file with TOTP key should not return error")
+	assert.Equal(t, "alice@example.com", key.Options.AccountName)
+	assert.Equal(t, "Example.com", key.Options.Issuer)
+	assert.Equal(t, "8", key.Options.Digits.String())
+}
+
+// ----------------------------------------------------------------------------
+//  GenKeyFromPEM()
+// ----------------------------------------------------------------------------
+
+func TestGenKeyFromPEM_bad_pem_file(t *testing.T) {
 	t.Parallel()
 
 	pemData := `
@@ -84,14 +112,14 @@ AIU+2GKjyT3iMuzZxxFxPFMCAwEAAQ==
 -----END PUBLIC KEY-----
 `
 
-	key, err := GenerateKeyPEM(pemData)
+	key, err := GenKeyFromPEM(pemData)
 
 	require.Error(t, err, "PEM file without TOTP key should return error")
 	require.Contains(t, err.Error(), "failed to decode PEM block containing TOTP secret key")
 	require.Nil(t, key)
 }
 
-func TestGenerateKeyPEM_multiple_pem_keys(t *testing.T) {
+func TestGenKeyFromPEM_multiple_pem_keys(t *testing.T) {
 	t.Parallel()
 
 	pemData := `
@@ -121,7 +149,7 @@ Skew: 0
 gX7ff3VlT4sCakCjQH69ZQxTbzs=
 -----END TOTP SECRET KEY-----`
 
-	key, err := GenerateKeyPEM(pemData)
+	key, err := GenKeyFromPEM(pemData)
 
 	require.NoError(t, err, "multiple PEM with valid key should not return error")
 	require.NotNil(t, key)

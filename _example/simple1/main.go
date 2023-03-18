@@ -48,7 +48,7 @@ func main() {
 		pemStr, err := os.ReadFile(NameFilePEM)
 		exitOnError(err)
 
-		key, err = totp.GenerateKeyPEM(string(pemStr))
+		key, err = totp.GenKeyFromPEM(string(pemStr))
 		exitOnError(err)
 	} else {
 		fmt.Println("- No PEM file/QR code image found. Creating...")

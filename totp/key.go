@@ -81,7 +81,16 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 }
 
 // GenerateKeyPEM creates a new Key object from a PEM formatted string.
+//
+// Deprecated: Use GenKeyFromPEM() instead. This function will be removed in
+// the next major release. Currently it is an alias to GenKeyFromPEM(). For
+// more information, see: https://github.com/KEINOS/go-totp/issues/14
 func GenerateKeyPEM(pemKey string) (*Key, error) {
+	return GenKeyFromPEM(pemKey)
+}
+
+// GenKeyFromPEM creates a new Key object from a PEM formatted string.
+func GenKeyFromPEM(pemKey string) (*Key, error) {
 	block, rest := pem.Decode([]byte(pemKey))
 
 	if block != nil && block.Type == BlockTypeTOTP {
@@ -102,7 +111,7 @@ func GenerateKeyPEM(pemKey string) (*Key, error) {
 	}
 
 	if block != nil && len(rest) > 0 {
-		return GenerateKeyPEM(string(rest))
+		return GenKeyFromPEM(string(rest))
 	}
 
 	return nil, errors.New("failed to decode PEM block containing TOTP secret key")
