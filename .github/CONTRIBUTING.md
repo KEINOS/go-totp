@@ -1,6 +1,6 @@
 # CONTRIBUTING
 
-Any PullRequest for the better are welcome!
+Any PullRequest for the better is welcome!
 
 - Branch to PR: `main`
 - Issues:
@@ -11,7 +11,7 @@ Any PullRequest for the better are welcome!
 
 You need to pass the below before review.
 
-- `go test ./...` on Go 1.15 ~ latest
+- `go test -race ./...` on Go 1.15 ~ latest
 - `golangci-lint run`: see the `.golangci.yml` for the configuration
 - `golint ./...`
 - Keeping 100% of code coverage
@@ -22,14 +22,14 @@ For convenience, there is a `docker-compose.yml` for the above.
 
 ```bash
 # Run test on Go 1.15
-docker compose v1_16
+docker compose run v1_16
 
 # Run test on Go 1.19
-docker compose v1_19
+docker compose run v1_19
 
 # Run test on latest Go
-docker compose latest
+docker compose run latest
 
 # Run linters (golangci-lint)
-docker compose lint
+docker compose run lint
 ```
