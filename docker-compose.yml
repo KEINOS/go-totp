@@ -1,25 +1,30 @@
 # =============================================================================
 #  Docker Compose file for testing on Go versions 1.15 to the latest.
 # =============================================================================
+# It is recommended to run specifying a specific service and not at once.
+#
 # - Recommended usage:
 #   - To update go.mod:
 #     $ docker compose run tidy
 #
 #   - To unit test:
 #     $ docker compose run v1_15
+#     $ docker compose run v1_16
+#     $ docker compose run v1_17
+#     $ docker compose run v1_18
+#     $ docker compose run v1_19
+#     $ docker compose run latest
 #
 #   - Lint check and static analysis:
 #     $ docker compose run lint
 #
-# It is recommended to run specifying a specific service and not at once.
+# - NOT recommended:
+#     $ docker compose up
 #
 # Since the service `tidy` will update/re-write the "go.mod" file to the latest
 # module version, during it's process the "go.mod" file will be gone temporarily.
 # Thus, `docker compose up` will cause failure in the other container because of
 # missing "go.mod" file.
-#
-# - NOT recommended way:
-#     $ docker compose up
 version: "3.9"
 
 volumes:
