@@ -83,14 +83,16 @@ base32Key := key.Secret.Base32()
 base62Key := key.Secret.Base62()
 ```
 
-- [View **more examples** and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
+- [View __more examples__ and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
 
 ## Statuses
 
 [![UnitTests](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml)
+[![PlatformTests](https://github.com/KEINOS/go-totp/actions/workflows/platform-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/platform-tests.yml "Tests on Win, macOS and Linux")
+
 [![golangci-lint](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml)
 [![CodeQL-Analysis](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml)
-[![PlatformTests](https://github.com/KEINOS/go-totp/actions/workflows/platform-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/platform-tests.yml "Tests on Win, macOS and Linux")
+[![Vulnerability Scan](https://github.com/KEINOS/go-totp/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/govulncheck.yml)
 
 [![codecov](https://codecov.io/gh/KEINOS/go-totp/branch/main/graph/badge.svg?token=JVY7WUeUFz)](https://codecov.io/gh/KEINOS/go-totp)
 [![Go Report Card](https://goreportcard.com/badge/github.com/KEINOS/go-totp)](https://goreportcard.com/report/github.com/KEINOS/go-totp)

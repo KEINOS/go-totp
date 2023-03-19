@@ -15,8 +15,11 @@
 #     $ docker compose run v1_19
 #     $ docker compose run latest
 #
-#   - Lint check and static analysis:
+#   - To check lint and static analysis:
 #     $ docker compose run lint
+#
+#   - To check critical vulnerabilities:
+#     $ docker compose run vuln
 #
 # - NOT recommended:
 #     $ docker compose up
@@ -49,7 +52,21 @@ services:
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
-    entrypoint: golangci-lint run
+    entrypoint: golangci-lint run ./...
+
+  # Run latest govulncheck (vulnerability scanner)
+  vuln:
+    build:
+      context: .
+      dockerfile: ./.github/Dockerfile
+      args:
+        VARIANT: alpine
+        GOINSTALL: golang.org/x/vuln/cmd/govulncheck@latest
+    working_dir: /workspaces
+    volumes:
+      - .:/workspaces
+      - GO_PKG_MOD:/go/pkg/mod
+    entrypoint: [ "govulncheck", "./..." ]
 
   # Service v1_15 runs the tests on Go v1.15
   v1_15:

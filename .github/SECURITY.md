@@ -7,7 +7,7 @@ At a minimum, the following measures apply:
 1. Code scanning with [CodeQL](https://codeql.github.com/) (via GitHub Actions).
 1. [Dependabot alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts) (via GitHub Security).
 1. [Security advisories](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/about-repository-security-advisories) (via GitHub Security).
-1. Keeping the version of `go.mod` up-to-date (via GitHub Actions).
+1. Keeping the version of `go.mod` up-to-date only if the avove tests pass (via GitHub Actions).
 
 ## Supported Versions and Statuses
 
@@ -19,7 +19,7 @@ At a minimum, the following measures apply:
 | Dependabot alerts | [Enabled](https://github.com/KEINOS/go-totp/security/dependabot) | (Viewable only for admins) |
 | Code scanning alerts | [Enabled](https://github.com/KEINOS/go-totp/security/code-scanning)<br>[![CodeQL-Analysis](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml) ||
 
-> __Note__: Currently, Go 1.15 is the minimum supported version, which matches the minimum version of the dependent packages. Depending on these versions, the minimum supported version may change in the future.
+> __Note__: Currently, Go 1.15 is the minimum supported version, which matches the minimum version of the dependent packages. Depending on these versions, the minimum supported version may change in the future. Though, __we encourage you to use the latest version of Go__.
 
 ## Update
 
