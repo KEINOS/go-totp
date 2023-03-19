@@ -1,5 +1,5 @@
 # =============================================================================
-#  Test Container for Vaious Go Versions (Last Updated: 2022-08-05)
+#  Test Container for Vaious Go Versions (Last Updated: 2023-03-17)
 # =============================================================================
 # Default version: golang:alpine
 ARG VARIANT="alpine"
@@ -9,10 +9,16 @@ ARG VARIANT="alpine"
 # -----------------------------------------------------------------------------
 FROM golang:${VARIANT}
 
+# Install git, make and other basic commands for building
 RUN apk add --no-cache \
-    git \
     alpine-sdk \
     build-base
+
+# Install go tools/packages if set
+ARG GOINSTALL
+ENV GOINSTALL=${GOINSTALL}
+COPY ./.github/goinstall.sh /goinstall.sh
+RUN /goinstall.sh
 
 WORKDIR /workspaces
 
