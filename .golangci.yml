@@ -25,11 +25,8 @@ linters:
   - nosnakecase
   - varcheck
   - deadcode
-  # Disabled because of generics
-  - contextcheck
-  - rowserrcheck
-  - sqlclosecheck
   - structcheck
-  - wastedassign
   # Disable due to mock private functions
   - testpackage
+  # Disable due to external dependencies
+  - depguard
