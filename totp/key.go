@@ -2,8 +2,8 @@ package totp
 
 import (
 	"encoding/pem"
-	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -181,9 +181,9 @@ func (k *Key) PEM() (string, error) {
 			"Algorithm":    k.Options.Algorithm.String(),
 			"Digits":       k.Options.Digits.String(),
 			"Issuer":       k.Options.Issuer,
-			"Period":       fmt.Sprintf("%d", k.Options.Period),
-			"Secret Size":  fmt.Sprintf("%d", k.Options.SecretSize),
-			"Skew":         fmt.Sprintf("%d", k.Options.Skew),
+			"Period":       strconv.FormatUint(uint64(k.Options.Period), 10),
+			"Secret Size":  strconv.FormatUint(uint64(k.Options.SecretSize), 10),
+			"Skew":         strconv.FormatUint(uint64(k.Options.Skew), 10),
 		},
 		Bytes: k.Secret.Bytes(),
 	})
@@ -221,7 +221,7 @@ func (k *Key) URI() string {
 	queryVal.Set("algorithm", k.Options.Algorithm.String())
 	queryVal.Set("digits", k.Options.Digits.String())
 	queryVal.Set("secret", k.Secret.Base32())
-	queryVal.Set("period", fmt.Sprintf("%d", k.Options.Period))
+	queryVal.Set("period", strconv.FormatUint(uint64(k.Options.Period), 10))
 
 	//nolint:exhaustruct // other fields are left blank on purpose
 	urlOut := url.URL{

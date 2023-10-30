@@ -187,6 +187,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 		return nil, errors.New("forced error")
 	}
 
+	//nolint:goconst // many occurrences but leave it
 	key2, err := GenerateKeyURI("otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3")
 

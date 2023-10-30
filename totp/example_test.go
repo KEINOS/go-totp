@@ -1,8 +1,10 @@
 package totp_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/KEINOS/go-totp/totp"
 )
@@ -175,6 +177,7 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 //  Function: GenerateKeyURI
 // ----------------------------------------------------------------------------
 
+//nolint:goconst // origin appears many times but leave it as is as example.
 func ExampleGenerateKeyURI() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
@@ -224,7 +227,7 @@ func ExampleKey() {
 	// AccountName: alice@example.com
 }
 
-//nolint:funlen // length is 62 lines long but leave it as is due to embedded example
+//nolint:funlen // length is 62 lines long but leave it as is due to embedded example.
 func ExampleKey_QRCode() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
@@ -247,7 +250,7 @@ func ExampleKey_QRCode() {
 		log.Fatal(err)
 	}
 
-	actual := fmt.Sprintf("%x", pngImage)
+	actual := hex.EncodeToString(pngImage)
 	expect := `89504e470d0a1a0a0000000d4948445200000064000000641000000000051` +
 		`916cb0000040549444154789ce45ced6edb400c9387bcff2b67180a2f324d5272ff` +
 		`95d59f35f7691f4f12a9047bbddf1561afaae3d0dde76bf631bdeddfdffd5f370fd` +
@@ -495,7 +498,7 @@ func ExampleStrToUint() {
 	fmt.Printf("uint1: %v, type: %T\n", uint1, uint1)
 
 	// Note that number that overflows the uint will return 0.
-	str2 := fmt.Sprintf("%d", uint64(0xFFFFFFFF+1))
+	str2 := strconv.FormatUint(uint64(0xFFFFFFFF+1), 10)
 	uint2 := totp.StrToUint(str2)
 
 	fmt.Printf("uint2: %v, type: %T\n", uint2, uint2)
