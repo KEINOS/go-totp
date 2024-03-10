@@ -92,7 +92,7 @@ func TestQRCode_PNG_fail_encoding(t *testing.T) {
 	}()
 
 	// Mock pngEncode to force return error
-	pngEncode = func(w io.Writer, m image.Image) error {
+	pngEncode = func(_ io.Writer, _ image.Image) error {
 		return errors.New("forced error")
 	}
 

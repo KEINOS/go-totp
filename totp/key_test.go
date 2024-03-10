@@ -38,7 +38,7 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 	}()
 
 	// Mock totpGenerate to force return malformed uri
-	totpGenerate = func(opts origTotp.GenerateOpts) (*origOtp.Key, error) {
+	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
 		// URI with bad secret format
 		//nolint:lll // ignore long line length due to URI
 		url := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&digits=6&issuer=Example.com&period=30&secret=BADSECRET$$"
@@ -183,7 +183,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 	}()
 
 	// Mock totpGenerate to force return error
-	totpGenerate = func(opts origTotp.GenerateOpts) (*origOtp.Key, error) {
+	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
 		return nil, errors.New("forced error")
 	}
 
@@ -226,7 +226,7 @@ func TestKey_PEM(t *testing.T) {
 	}()
 
 	// Mock pemEncodeToMemory to force return nil as an error
-	pemEncodeToMemory = func(b *pem.Block) []byte {
+	pemEncodeToMemory = func(_ *pem.Block) []byte {
 		return nil
 	}
 
