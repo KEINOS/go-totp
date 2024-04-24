@@ -12,19 +12,20 @@
 ## Usage
 
 ```go
+// Install package
 go get "github.com/KEINOS/go-totp"
 ```
 
 ```go
-import (
-    "fmt"
-    "log"
-
-    "github.com/KEINOS/go-totp/totp"
-)
+// import "github.com/KEINOS/go-totp/totp"
 
 func Example() {
-    // Generate a new secret key
+    // Generate a new secret key with default options:
+    //   Algorithm: SHA1
+    //   Period: 30
+    //   Secret Size: 128
+    //   Skew: 0
+    //   Digits: 6
     Issuer := "Example.com"
     AccountName := "alice@example.com"
 
@@ -43,7 +44,7 @@ func Example() {
     if key.Validate(passcode) {
         fmt.Println("Passcode is valid")
     }
-
+    //
     // Output: Passcode is valid
 }
 ```
@@ -51,21 +52,33 @@ func Example() {
 - [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
 ```go
-// Generate a secret for TOTP (totp.Key object).
-key, err := totp.GenerateKey(Issuer, AccountName)
+// --------------------------------------------------
+//  Generate a new secret key with custom options
+// --------------------------------------------------
+key, err := totp.GenerateKey(Issuer, AccountName,
+    totp.WithAlgorithm(totp.Algorithm("SHA256")),
+    totp.WithPeriod(15),
+    totp.WithSecretSize(256),
+    totp.WithSkew(5),
+    totp.WithDigits(totp.DigitsEight),
+)
 
 // --------------------------------------------------
-//  Basic methods of totp.Key object
+//  Methods of totp.Key object
 // --------------------------------------------------
 
-// Generate the current passcode. Which is a string of
-// 6 digit numbers and valid for 30 seconds by default.
+// Generate the current passcode.
+//
+// Which is a string of 8 digit numbers and valid for
+// 15 seconds with ±5 seconds skew/tolerance (as set
+// in the above example).
 passcode, err := key.PassCode()
 
 // Validate the received passcode.
 ok := key.Validate(passcode)
 
 // Get 100x100 px image of QR code as PNG byte data.
+//
 // FixLevelDefault is the 15% of error correction.
 qrCodeObj, err := key.QRCode(totp.FixLevelDefault)
 pngBytes, err := qrCodeObj.PNG(100, 100)
@@ -81,6 +94,9 @@ base32Key := key.Secret.Base32()
 
 // Get the secret value in Base62 format string.
 base62Key := key.Secret.Base62()
+
+// Get the secret value in bytes.
+rawKey := key.Secret.Bytes()
 ```
 
 - [View __more examples__ and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
@@ -111,10 +127,10 @@ Any Pull-Request for improvement is welcome!
 - [CIs](https://github.com/KEINOS/go-totp/actions) on PR/Push: `unit-tests` `golangci-lint` `codeQL-analysis` `platform-tests`
 - [Security policy](https://github.com/KEINOS/go-totp/security/policy)
 - Help wanted
-    - https://github.com/KEINOS/go-totp/issues
+  - [https://github.com/KEINOS/go-totp/issues](https://github.com/KEINOS/go-totp/issues)
 
 ## License, copyright and credits
 
-- MIT, Copyright (c) 2022 [The go-totp contributors](https://github.com/KEINOS/go-totp/graphs/contributors).
+- MIT, Copyright (c) 2022- [The go-totp contributors](https://github.com/KEINOS/go-totp/graphs/contributors).
 - This Go package relies heavily on support from the `github.com/pquerna/otp` package.
   - [https://github.com/pquerna/otp](https://github.com/pquerna/otp) with [Apache-2.0 license](https://github.com/pquerna/otp/blob/master/LICENSE)

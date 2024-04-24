@@ -19,7 +19,7 @@ type Algorithm string
 // ----------------------------------------------------------------------------
 
 // NewAlgorithmStr creates a new Algorithm object from a string.
-// Choices are: MD5, SHA1, SHA256 and SHA512.
+// Choices of algo are: MD5, SHA1, SHA256 and SHA512.
 func NewAlgorithmStr(algo string) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"

@@ -1,15 +1,15 @@
 run:
   tests: true
-  fast: true
   build-tags:
     - golangci
-  skip-dirs:
-    - .github
-    - .vscode
   allow-parallel-runners: true
 
+issues:
+  exclude-dirs:
+    - .github
+    - .vscode
+
 output:
-  format: colored-line-number
   sort-results: true
 
 linters:

@@ -11,9 +11,93 @@ const (
 	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
 )
 
+// ============================================================================
+//  Type: Option
+// ============================================================================
+
+type Option func(*Options) error
+
 // ----------------------------------------------------------------------------
+//  Option Patterns
+// ----------------------------------------------------------------------------
+
+const errNilOptions = "options is nil"
+
+// WithAlgorithm sets the Algorithm to use for HMAC (Default: Algorithm("SHA512")).
+func WithAlgorithm(algo Algorithm) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		if !algo.IsSupported() {
+			return errors.New("unsupported algorithm: " + algo.String())
+		}
+
+		opts.Algorithm = algo
+
+		return nil
+	}
+}
+
+// WithPeriod sets the number of seconds a TOTP hash is valid for (Default: 30 seconds).
+func WithPeriod(period uint) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		opts.Period = period
+
+		return nil
+	}
+}
+
+// WithSecretSize sets the size of the generated Secret (Default: 128 bytes).
+func WithSecretSize(size uint) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		opts.SecretSize = size
+
+		return nil
+	}
+}
+
+// WithSkew sets the periods before or after the current time to allow.
+// Value of 1 allows up to Period of either side of the specified time.
+// Defaults to 0 allowed skews. Values greater than 1 are likely sketchy.
+func WithSkew(skew uint) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		opts.Skew = skew
+
+		return nil
+	}
+}
+
+// WithDigits sets the Digits to request TOTP code.
+// DigitsSix or DigitsEight (Default: DigitsSix).
+func WithDigits(digits Digits) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		opts.Digits = digits
+
+		return nil
+	}
+}
+
+// ============================================================================
 //  Type: Options
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 // Options is a struct that holds the options for a TOTP key.
 type Options struct {

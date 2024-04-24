@@ -20,9 +20,29 @@ func TestGenerateKey_missing_issuer(t *testing.T) {
 
 	key, err := GenerateKey("", "alice@example.com")
 
-	require.Error(t, err, "missing issuer should return error")
-	require.Nil(t, key)
-	require.Contains(t, err.Error(), "failed to generate key: Issuer must be set")
+	require.Error(t, err,
+		"missing issuer should return error")
+	require.Nil(t, key,
+		"returned key should be nil on error")
+	require.Contains(t, err.Error(),
+		"failed to create options during key generation: issuer and accountName are required")
+}
+
+func TestGenerateKey_bad_option(t *testing.T) {
+	t.Parallel()
+
+	key, err := GenerateKey(
+		"Example.com",
+		"alice@example.com",
+		WithAlgorithm(Algorithm("BADALGO")),
+	)
+
+	require.Error(t, err,
+		"missing issuer should return error")
+	require.Nil(t, key,
+		"returned key should be nil on error")
+	require.Contains(t, err.Error(),
+		"failed to apply custom options: unsupported algorithm: BADALGO")
 }
 
 // ----------------------------------------------------------------------------
@@ -42,7 +62,7 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 		// URI with bad secret format
 		//nolint:lll // ignore long line length due to URI
 		url := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&digits=6&issuer=Example.com&period=30&secret=BADSECRET$$"
-		//nolint:wrapcheck // ignore error wrap check
+
 		return origOtp.NewKeyFromURL(url)
 	}
 
@@ -187,7 +207,6 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 		return nil, errors.New("forced error")
 	}
 
-	//nolint:goconst // many occurrences but leave it
 	key2, err := GenerateKeyURI("otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3")
 

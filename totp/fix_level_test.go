@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFixLevel_golen(t *testing.T) {
+func TestFixLevel_golden(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range []struct {
