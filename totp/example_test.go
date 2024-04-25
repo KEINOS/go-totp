@@ -1,3 +1,4 @@
+//nolint:goconst
 package totp_test
 
 import (
@@ -9,8 +10,13 @@ import (
 	"github.com/KEINOS/go-totp/totp"
 )
 
-func Example() {
-	// Generate a new secret key
+func Example_basic() {
+	// Generate a new secret key with default options:
+	//   Algorithm: SHA1
+	//   Period: 30
+	//   Secret Size: 128
+	//   Skew: 0
+	//   Digits: 6
 	Issuer := "Example.com"
 	AccountName := "alice@example.com"
 
@@ -29,7 +35,37 @@ func Example() {
 	if key.Validate(passcode) {
 		fmt.Println("Passcode is valid")
 	}
+	//
+	// Output: Passcode is valid
+}
 
+func Example_custom() {
+	// Generate a new secret key with custom options
+	Issuer := "Example.com"
+	AccountName := "alice@example.com"
+
+	key, err := totp.GenerateKey(Issuer, AccountName,
+		totp.WithAlgorithm(totp.Algorithm("SHA256")),
+		totp.WithPeriod(15),
+		totp.WithSecretSize(256),
+		totp.WithSkew(5),
+		totp.WithDigits(totp.DigitsEight),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate 8 digits passcode (valid for 15 ± 5 seconds)
+	passcode, err := key.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate the passcode
+	if key.Validate(passcode) {
+		fmt.Println("Passcode is valid")
+	}
+	//
 	// Output: Passcode is valid
 }
 
@@ -61,7 +97,7 @@ func Example_advanced() {
 	if key.Validate(passcode) {
 		fmt.Println("Passcode is valid")
 	}
-
+	//
 	// Output: Passcode is valid
 }
 
@@ -80,7 +116,7 @@ func ExampleAlgorithm() {
 	fmt.Println("Algorithm:", algo.String())
 	fmt.Println("Algorithm ID:", algo.ID())
 	fmt.Printf("Type: %T\n", algo.OTPAlgorithm())
-
+	//
 	// Output:
 	// Algorithm: SHA512
 	// Algorithm ID: 2
@@ -88,7 +124,7 @@ func ExampleAlgorithm() {
 }
 
 func ExampleAlgorithm_IsSupported() {
-	// Cast a string to Algorithm type
+	// Set unsupported algorithm
 	algo := totp.Algorithm("BLAKE3")
 
 	// Check if the algorithm is supported
@@ -97,7 +133,7 @@ func ExampleAlgorithm_IsSupported() {
 	} else {
 		fmt.Println("Algorithm is not supported")
 	}
-
+	//
 	// Output: Algorithm is not supported
 }
 
@@ -122,7 +158,7 @@ func ExampleDigits() {
 	if totp.DigitsSix == totp.NewDigitsInt(6) {
 		fmt.Println("Digit 6", "OK")
 	}
-
+	//
 	// Output:
 	// Digits: 8
 	// Digits ID: 8
@@ -131,7 +167,7 @@ func ExampleDigits() {
 }
 
 // ----------------------------------------------------------------------------
-//  Function: GenKeyFromPEM
+//  Function: GenKeyFromPEM (fka GenerateKeyPEM)
 // ----------------------------------------------------------------------------
 
 func ExampleGenKeyFromPEM() {
@@ -161,7 +197,7 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	fmt.Println("Secret Size:", key.Options.SecretSize)
 	fmt.Println("Skew:", key.Options.Skew)
 	fmt.Println("Secret:", key.Secret.Base32())
-
+	//
 	// Output:
 	// AccountName: alice@example.com
 	// Algorithm: SHA1
@@ -174,15 +210,14 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 }
 
 // ----------------------------------------------------------------------------
-//  Function: GenerateKeyURI
+//  Function: GeneKeyFromURI (fka GenerateKeyURI)
 // ----------------------------------------------------------------------------
 
-//nolint:goconst // origin appears many times but leave it as is as example.
-func ExampleGenerateKeyURI() {
+func ExampleGenKeyFromURI() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
-	key, err := totp.GenerateKeyURI(origin)
+	key, err := totp.GenKeyFromURI(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -194,7 +229,7 @@ func ExampleGenerateKeyURI() {
 	fmt.Println("Period:", key.Options.Period)
 	fmt.Println("Secret Size:", key.Options.SecretSize)
 	fmt.Println("Secret:", key.Secret.String())
-
+	//
 	// Output:
 	// Issuer: Example.com
 	// AccountName: alice@example.com
@@ -221,10 +256,40 @@ func ExampleKey() {
 
 	fmt.Println("Issuer:", key.Options.AccountName)
 	fmt.Println("AccountName:", key.Options.AccountName)
-
+	//
 	// Output:
 	// Issuer: alice@example.com
 	// AccountName: alice@example.com
+}
+
+func ExampleKey_PEM() {
+	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	key, err := totp.GenKeyFromURI(origin)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	keyPEM, err := key.PEM()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(keyPEM)
+	//
+	// Output:
+	// -----BEGIN TOTP SECRET KEY-----
+	// Account Name: alice@example.com
+	// Algorithm: SHA1
+	// Digits: 6
+	// Issuer: Example.com
+	// Period: 30
+	// Secret Size: 20
+	// Skew: 0
+	//
+	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
+	// -----END TOTP SECRET KEY-----
 }
 
 //nolint:funlen // length is 62 lines long but leave it as is due to embedded example.
@@ -233,7 +298,7 @@ func ExampleKey_QRCode() {
 		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
 	// Create a new Key object from a URI
-	key, err := totp.GenerateKeyURI(origin)
+	key, err := totp.GenKeyFromURI(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -289,45 +354,46 @@ func ExampleKey_QRCode() {
 	if expect == actual {
 		fmt.Println("OK")
 	}
-
+	//
 	// Output: OK
 }
 
-func ExampleKey_PEM() {
-	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
-		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+func ExampleKey_String() {
+	origin := `
+-----BEGIN TOTP SECRET KEY-----
+Account Name: alice@example.com
+Algorithm: SHA1
+Digits: 12
+Issuer: Example.com
+Period: 60
+Secret Size: 20
+Skew: 0
 
-	key, err := totp.GenerateKeyURI(origin)
+gX7ff3VlT4sCakCjQH69ZQxTbzs=
+-----END TOTP SECRET KEY-----
+`
+
+	key, err := totp.GenKeyFromPEM(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	keyPEM, err := key.PEM()
-	if err != nil {
-		log.Fatal(err)
+	expect := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+	actual := key.String()
+
+	if expect == actual {
+		fmt.Println("URI returned as expected")
 	}
-
-	fmt.Println(keyPEM)
-
-	// Output:
-	// -----BEGIN TOTP SECRET KEY-----
-	// Account Name: alice@example.com
-	// Algorithm: SHA1
-	// Digits: 6
-	// Issuer: Example.com
-	// Period: 30
-	// Secret Size: 20
-	// Skew: 0
 	//
-	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
-	// -----END TOTP SECRET KEY-----
+	// Output: URI returned as expected
 }
 
 func ExampleKey_URI() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
-	key, err := totp.GenerateKeyURI(origin)
+	key, err := totp.GenKeyFromURI(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -338,7 +404,7 @@ func ExampleKey_URI() {
 	if expect == actual {
 		fmt.Println("URI returned as expected")
 	}
-
+	//
 	// Output: URI returned as expected
 }
 
@@ -368,7 +434,7 @@ func ExampleNewOptions() {
 	if opt2 != nil {
 		log.Fatal("NewOptions() should return nil on error")
 	}
-
+	//
 	// Output:
 	// Type: *totp.Options
 	// Issuer: Example.com
@@ -392,7 +458,7 @@ func ExampleNewSecretBytes() {
 	fmt.Println("Secret string:", secret.String())
 	fmt.Println("Secret Base32:", secret.Base32())
 	fmt.Println("Secret Base62:", secret.Base62())
-
+	//
 	// Output:
 	// Type: totp.Secret
 	// Value: totp.Secret{0x73, 0x6f, 0x6d, 0x65, 0x20, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74}
@@ -432,7 +498,7 @@ func ExampleOptions() {
 	// Skew is an acceptable range of time before and after. Value of 1 allows
 	// up to Period of either side of the specified time.
 	fmt.Println("Skew:", options.Skew)
-
+	//
 	// Output:
 	// Issuer: Example.com
 	// AccountName: alice@example.com
@@ -479,7 +545,7 @@ func ExampleSecret() {
 	if secret32.String() == secret62.String() {
 		fmt.Println("Two secrets are the same.")
 	}
-
+	//
 	// Output:
 	// Get as base62 encoded string: FegjEGvm7g03GQye
 	// Get as base32 encoded string: MZXW6IDCMFZCAYTVPJ5A
@@ -502,7 +568,7 @@ func ExampleStrToUint() {
 	uint2 := totp.StrToUint(str2)
 
 	fmt.Printf("uint2: %v, type: %T\n", uint2, uint2)
-
+	//
 	// Output:
 	// uint1: 1234567890, type: uint
 	// uint2: 0, type: uint
@@ -535,7 +601,7 @@ func ExampleURI() {
 	fmt.Println("Secret:", uri.Secret().String())
 	fmt.Println("Period:", uri.Period())
 	fmt.Println("Digits:", uri.Digits())
-
+	//
 	// Output:
 	// Raw URI and String is equal: OK
 	// Scheme: otpauth
@@ -554,7 +620,7 @@ func ExampleURI_IssuerFromPath() {
 	uri := totp.URI(origin)
 
 	fmt.Println(uri.IssuerFromPath())
-
+	//
 	// Output: Example.com
 }
 
@@ -568,7 +634,7 @@ func ExampleValidate() {
 	uri := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
-	key, err := totp.GenerateKeyURI(uri)
+	key, err := totp.GenKeyFromURI(uri)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -591,7 +657,7 @@ func ExampleValidate() {
 	if totp.Validate(passcode, secret, options) {
 		fmt.Println("Passcode is valid. Checked via Validate() function.")
 	}
-
+	//
 	// Output:
 	// Passcode is valid. Checked via Key.Validate() method.
 	// Passcode is valid. Checked via Validate() function.

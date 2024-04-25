@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAlgorithm_golen(t *testing.T) {
+func TestAlgorithm_golden(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range []string{

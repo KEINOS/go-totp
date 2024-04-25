@@ -32,24 +32,32 @@ type Key struct {
 //	SHA-512 hash for HMAC, 30 seconds of period, 64 byte size of secret and
 //	6 digits of passcode.
 //
-// To specify custom options, use GenerateKeyCustom().
-func GenerateKey(issuer string, accountName string) (*Key, error) {
-	//nolint:exhaustruct // allow fields to be missing  so to set defaults later
-	opt := Options{
-		Issuer:      issuer,
-		AccountName: accountName,
+// To customize the options, use the With* functions from the options.go file.
+// For advanced customization, use GenerateKeyCustom() instead.
+func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error) {
+	// Create options with default values.
+	optsCustom, err := NewOptions(issuer, accountName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create options during key generation")
 	}
 
-	opt.SetDefault()
+	// Apply custom options.
+	for _, fn := range opts {
+		if err := fn(optsCustom); err != nil {
+			return nil, errors.Wrap(err, "failed to apply custom options")
+		}
+	}
 
-	return GenerateKeyCustom(opt)
+	return GenerateKeyCustom(*optsCustom)
 }
 
 //nolint:gochecknoglobals // allow private global variable to mock during tests
 var totpGenerate = totp.Generate
 
-// GenerateKeyCustom creates a new Key object with custom options. With this
-// function you can specify the algorithm, period, secret size and digits.
+// GenerateKeyCustom creates a new Key object with custom options.
+//
+// Usually, `GenerateKey` with options is enough for most cases. But if you need
+// more control over the options, use this function.
 func GenerateKeyCustom(options Options) (*Key, error) {
 	tmpOpt := totp.GenerateOpts{
 		Issuer:      options.Issuer,
@@ -119,10 +127,18 @@ func GenKeyFromPEM(pemKey string) (*Key, error) {
 
 // GenerateKeyURI creates a new Key object from an TOTP uri/url.
 //
+// Deprecated: Use GenKeyFromURI() instead. This function will be removed in
+// the next major release. Currently it is an alias to GenKeyFromURI(). For
+// more information, see: https://github.com/KEINOS/go-totp/issues/14
+func GenerateKeyURI(uri string) (*Key, error) {
+	return GenKeyFromURI(uri)
+}
+
+// GenKeyFromURI creates a new Key object from an TOTP uri/url.
 // The URL format is documented here:
 //
 //	https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-func GenerateKeyURI(uri string) (*Key, error) {
+func GenKeyFromURI(uri string) (*Key, error) {
 	objURI := URI(uri)
 
 	if err := objURI.Check(); err != nil {
@@ -153,6 +169,9 @@ func GenerateKeyURI(uri string) (*Key, error) {
 //  Methods
 // ----------------------------------------------------------------------------
 
+//nolint:gochecknoglobals // allow private global variable to mock during tests
+var pemEncodeToMemory = pem.EncodeToMemory
+
 // PassCode generates a 6 or 8 digits passcode for the current time.
 // The output string will be eg. "123456" or "12345678".
 func (k *Key) PassCode() (string, error) {
@@ -168,9 +187,6 @@ func (k *Key) PassCode() (string, error) {
 		},
 	)
 }
-
-//nolint:gochecknoglobals // allow private global variable to mock during tests
-var pemEncodeToMemory = pem.EncodeToMemory
 
 // PEM returns the key in PEM formatted string.
 func (k *Key) PEM() (string, error) {
@@ -208,6 +224,13 @@ func (k *Key) QRCode(fixLevel FixLevel) (*QRCode, error) {
 	}
 
 	return qrCode, nil
+}
+
+// String returns a string representation of the key in URI format.
+//
+// It is an implementation of the fmt.Stringer interface.
+func (k *Key) String() string {
+	return k.URI()
 }
 
 // URI returns the key in OTP URI format.
