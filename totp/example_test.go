@@ -11,19 +11,22 @@ import (
 )
 
 func Example_basic() {
-	// Generate a new secret key with default options:
-	//   Algorithm: SHA1
-	//   Period: 30
-	//   Secret Size: 128
-	//   Skew: 0
-	//   Digits: 6
-	Issuer := "Example.com"
-	AccountName := "alice@example.com"
+	Issuer := "Example.com"            // name of the service
+	AccountName := "alice@example.com" // name of the user
 
+	// Generate a new secret key with default options.
+	// Compatible with most TOTP authenticator apps.
 	key, err := totp.GenerateKey(Issuer, AccountName)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Print the default option values.
+	fmt.Println("- Algorithm:", key.Options.Algorithm)
+	fmt.Println("- Period:", key.Options.Period)
+	fmt.Println("- Secret Size:", key.Options.SecretSize)
+	fmt.Println("- Skew (time tolerance):", key.Options.Skew)
+	fmt.Println("- Digits:", key.Options.Digits)
 
 	// Generate 6 digits passcode (valid for 30 seconds)
 	passcode, err := key.PassCode()
@@ -33,10 +36,16 @@ func Example_basic() {
 
 	// Validate the passcode
 	if key.Validate(passcode) {
-		fmt.Println("Passcode is valid")
+		fmt.Println("* Validation result: Passcode is valid")
 	}
 	//
-	// Output: Passcode is valid
+	// Output:
+	// - Algorithm: SHA1
+	// - Period: 30
+	// - Secret Size: 128
+	// - Skew (time tolerance): 0
+	// - Digits: 6
+	// * Validation result: Passcode is valid
 }
 
 func Example_custom() {

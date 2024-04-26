@@ -20,19 +20,22 @@ go get "github.com/KEINOS/go-totp"
 // import "github.com/KEINOS/go-totp/totp"
 
 func Example() {
-    // Generate a new secret key with default options:
-    //   Algorithm: SHA1
-    //   Period: 30
-    //   Secret Size: 128
-    //   Skew: 0
-    //   Digits: 6
-    Issuer := "Example.com"
-    AccountName := "alice@example.com"
+    Issuer := "Example.com"            // name of the service
+    AccountName := "alice@example.com" // name of the user
 
+    // Generate a new secret key with default options.
+    // Compatible with most TOTP authenticator apps.
     key, err := totp.GenerateKey(Issuer, AccountName)
     if err != nil {
         log.Fatal(err)
     }
+
+    // Print the default option values.
+    fmt.Println("- Algorithm:", key.Options.Algorithm)
+    fmt.Println("- Period:", key.Options.Period)
+    fmt.Println("- Secret Size:", key.Options.SecretSize)
+    fmt.Println("- Skew (time tolerance):", key.Options.Skew)
+    fmt.Println("- Digits:", key.Options.Digits)
 
     // Generate 6 digits passcode (valid for 30 seconds)
     passcode, err := key.PassCode()
@@ -42,10 +45,16 @@ func Example() {
 
     // Validate the passcode
     if key.Validate(passcode) {
-        fmt.Println("Passcode is valid")
+        fmt.Println("* Validation result: Passcode is valid")
     }
     //
-    // Output: Passcode is valid
+    // Output:
+    // - Algorithm: SHA1
+    // - Period: 30
+    // - Secret Size: 128
+    // - Skew (time tolerance): 0
+    // - Digits: 6
+    // * Validation result: Passcode is valid
 }
 ```
 
@@ -64,8 +73,9 @@ key, err := totp.GenerateKey(Issuer, AccountName,
 )
 
 // --------------------------------------------------
-//  Methods of totp.Key object
+//  Major methods of totp.Key object
 // --------------------------------------------------
+//  * You should handle the error in your code.
 
 // Generate the current passcode.
 //
@@ -87,9 +97,11 @@ pngBytes, err := qrCodeObj.PNG(100, 100)
 pemKey, err := key.PEM()
 
 // Get the secret key in TOTP URI format string.
+// This is equivalent to key.String().
 uriKey := key.URI()
 
 // Get the secret value in Base32 format string.
+// This is equivalent to key.Secret.String().
 base32Key := key.Secret.Base32()
 
 // Get the secret value in Base62 format string.
