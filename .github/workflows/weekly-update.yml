@@ -31,9 +31,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Update go.mod and go.sum on Go 1.15 env
+      - name: Update go.mod and go.sum min Go ver env
         run: |
           set -eu
           docker-compose run tidy

@@ -8,8 +8,7 @@
 #     $ docker compose run tidy
 #
 #   - To unit test:
-#     $ docker compose run v1_18
-#     $ docker compose run v1_19
+#     $ docker compose run v1_22
 #     $ docker compose run latest
 #
 #   - To check lint and static analysis:
@@ -37,7 +36,7 @@ services:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.18-alpine
+        VARIANT: 1.22-alpine
     volumes:
       - .:/workspaces
     entrypoint: [ "./.github/run_go_mod_tidy.sh" ]
@@ -98,24 +97,35 @@ services:
   #     - .:/workspaces
   #     - GO_PKG_MOD:/go/pkg/mod
 
-  # Service v1_18 runs the tests on Go v1.18
-  v1_18:
-    build:
-      context: .
-      dockerfile: ./.github/Dockerfile
-      args:
-        VARIANT: 1.18-alpine
-    volumes:
-      - .:/workspaces
-      - GO_PKG_MOD:/go/pkg/mod
+  # # Service v1_18 runs the tests on Go v1.18
+  # v1_18:
+  #   build:
+  #     context: .
+  #     dockerfile: ./.github/Dockerfile
+  #     args:
+  #       VARIANT: 1.18-alpine
+  #   volumes:
+  #     - .:/workspaces
+  #     - GO_PKG_MOD:/go/pkg/mod
 
-  # Service v1_19 runs the tests on Go v1.19
-  v1_19:
+  # # Service v1_19 runs the tests on Go v1.19
+  # v1_19:
+  #   build:
+  #     context: .
+  #     dockerfile: ./.github/Dockerfile
+  #     args:
+  #       VARIANT: 1.19-alpine
+  #   volumes:
+  #     - .:/workspaces
+  #     - GO_PKG_MOD:/go/pkg/mod
+
+  # Service v1_22 is the minimum version we support
+  v1_22:
     build:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.19-alpine
+        VARIANT: 1.22-alpine
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod

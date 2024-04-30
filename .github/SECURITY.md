@@ -13,13 +13,13 @@ At a minimum, the following measures apply:
 
 | Version/Section | Status | Note |
 | :------ | :----- | :--- |
-| Go 1.15, 1.16 ... latest | [![go1.15+](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml "Unit tests on various Go versions") | Including Go 1.20 |
-| Golangci-lint 1.51.2 or later | [![golangci-lint](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml) | |
+| Go 1.22 ... latest | [![go1.22+](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml "Unit tests on various Go versions") | Including Go 1.22 |
+| Golangci-lint v1.57.2 or later | [![golangci-lint](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/golangci-lint.yml) | |
 | Security advisories | [Enabled](https://github.com/KEINOS/go-totp/security/advisories) | |
 | Dependabot alerts | [Enabled](https://github.com/KEINOS/go-totp/security/dependabot) | (Viewable only for admins) |
 | Code scanning alerts | [Enabled](https://github.com/KEINOS/go-totp/security/code-scanning)<br>[![CodeQL-Analysis](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/codeQL-analysis.yml) ||
 
-> __Note__: Currently, Go 1.15 is the minimum supported version, which matches the minimum version of the dependent packages. Depending on these versions, the minimum supported version may change in the future. Though, __we encourage you to use the latest version of Go__.
+> __Note__: Currently, Go 1.22 is the minimum supported version, which matches the minimum version of the dependent packages and linters. Depending on these versions, the minimum supported version may change in the future. Though, __we encourage you to use the latest version of Go__.
 
 ## Update
 
