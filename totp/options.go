@@ -1,113 +1,51 @@
 package totp
 
-import "github.com/pkg/errors"
+import (
+	"crypto/ecdh"
+
+	"github.com/pkg/errors"
+)
 
 // Constants for the default values of the options.
 const (
 	OptionAlgorithmDefault  = Algorithm("SHA1") // Google Authenticator does not work other than SHA1.
+	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
 	OptionPeriodDefault     = uint(30)          // 30 seconds is recommended in RFC-6238.
 	OptionSecretSizeDefault = uint(128)         // 128 Bytes.
 	OptionSkewDefault       = uint(0)           // ± Periods. No tolerance.
-	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
 )
-
-// ============================================================================
-//  Type: Option
-// ============================================================================
-
-type Option func(*Options) error
-
-// ----------------------------------------------------------------------------
-//  Option Patterns
-// ----------------------------------------------------------------------------
-
-const errNilOptions = "options is nil"
-
-// WithAlgorithm sets the Algorithm to use for HMAC (Default: Algorithm("SHA512")).
-func WithAlgorithm(algo Algorithm) Option {
-	return func(opts *Options) error {
-		if opts == nil {
-			return errors.New(errNilOptions)
-		}
-
-		if !algo.IsSupported() {
-			return errors.New("unsupported algorithm: " + algo.String())
-		}
-
-		opts.Algorithm = algo
-
-		return nil
-	}
-}
-
-// WithPeriod sets the number of seconds a TOTP hash is valid for (Default: 30 seconds).
-func WithPeriod(period uint) Option {
-	return func(opts *Options) error {
-		if opts == nil {
-			return errors.New(errNilOptions)
-		}
-
-		opts.Period = period
-
-		return nil
-	}
-}
-
-// WithSecretSize sets the size of the generated Secret (Default: 128 bytes).
-func WithSecretSize(size uint) Option {
-	return func(opts *Options) error {
-		if opts == nil {
-			return errors.New(errNilOptions)
-		}
-
-		opts.SecretSize = size
-
-		return nil
-	}
-}
-
-// WithSkew sets the periods before or after the current time to allow.
-// Value of 1 allows up to Period of either side of the specified time.
-// Defaults to 0 allowed skews. Values greater than 1 are likely sketchy.
-func WithSkew(skew uint) Option {
-	return func(opts *Options) error {
-		if opts == nil {
-			return errors.New(errNilOptions)
-		}
-
-		opts.Skew = skew
-
-		return nil
-	}
-}
-
-// WithDigits sets the Digits to request TOTP code.
-// DigitsSix or DigitsEight (Default: DigitsSix).
-func WithDigits(digits Digits) Option {
-	return func(opts *Options) error {
-		if opts == nil {
-			return errors.New(errNilOptions)
-		}
-
-		opts.Digits = digits
-
-		return nil
-	}
-}
 
 // ============================================================================
 //  Type: Options
 // ============================================================================
 
-// Options is a struct that holds the options for a TOTP key.
+// Options is a struct that holds the options for a TOTP key. Use SetDefault()
+// to set the default values.
 type Options struct {
-	// Issuer is the name of the issuer of the secret key. (eg, organization, company, domain)
-	Issuer string
 	// AccountName is the name of the secret key owner. (eg, email address)
 	AccountName string
-	// Algorithm to use for HMAC. (Default: Algorithm("SHA512"))
+	// Algorithm to use for HMAC to generate the TOTP passcode.
+	// (Default: Algorithm("SHA1"))
+	//
+	// Note that this is not the same hash algorithm used for the secret key
+	// generated via ECDH.
 	Algorithm Algorithm
-	// Period is the number of seconds a TOTP hash is valid for. (Default: 30 seconds)
+	// Digits to request TOTP code. DigitsSix or DigitsEight. (Default: DigitsSix)
+	Digits Digits
+	// Context used for generating TOTP secret from ECDH shared secret. If both
+	// ecdhPrivateKey and ecdhPublicKey are set, this context will be used.
+	ecdhCtx string
+	// ECDH private key. If both ecdhPrivateKey and ecdhPublicKey are set, the
+	// secret will be generated from them.
+	ecdhPrivateKey *ecdh.PrivateKey
+	// ECDH public key of the correspondent. If both ecdhPrivateKey and ecdhPublicKey
+	// are set, the secret will be generated from them.
+	ecdhPublicKey *ecdh.PublicKey
+	// Issuer is the name of the issuer of the secret key.
+	// (eg, organization, company, domain)
+	Issuer string
+	// Period is the number of seconds a TOTP hash is valid for.
+	// (Default: 30 seconds)
 	Period uint
 	// SecretSize is the size of the generated Secret. (Default: 128 bytes)
 	SecretSize uint
@@ -115,8 +53,6 @@ type Options struct {
 	// Value of 1 allows up to Period of either side of the specified time.
 	// Defaults to 0 allowed skews. Values greater than 1 are likely sketchy.
 	Skew uint
-	// Digits to request TOTP code. DigitsSix or DigitsEight. (Default: DigitsSix)
-	Digits Digits
 }
 
 // ----------------------------------------------------------------------------

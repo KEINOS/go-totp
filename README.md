@@ -7,7 +7,9 @@
 
 - [Compatible Authenticator apps](https://github.com/KEINOS/go-totp/wiki/List-of-compatibility) | Wiki @ GitHub
 
-> __Note__ This is a wrapper of the awesome [`github.com/pquerna/otp`](https://github.com/pquerna/otp) package to facilitate the use of TOTP.
+> __Note__: This is a wrapper of the awesome [`github.com/pquerna/otp`](https://github.com/pquerna/otp) package to facilitate the use of TOTP.
+>
+> As an optional feature, this package __supports the [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) (Elliptic-curve Diffie-Hellman) key agreement protocol__, where public keys are exchanged between two parties to obtain a common TOTP passcode.
 
 ## Usage
 
@@ -61,9 +63,9 @@ func Example() {
 - [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
 ```go
-// --------------------------------------------------
+// ----------------------------------------------------------------------------
 //  Generate a new secret key with custom options
-// --------------------------------------------------
+// ----------------------------------------------------------------------------
 key, err := totp.GenerateKey(Issuer, AccountName,
     totp.WithAlgorithm(totp.Algorithm("SHA256")),
     totp.WithPeriod(15),
@@ -72,16 +74,15 @@ key, err := totp.GenerateKey(Issuer, AccountName,
     totp.WithDigits(totp.DigitsEight),
 )
 
-// --------------------------------------------------
+// ----------------------------------------------------------------------------
 //  Major methods of totp.Key object
-// --------------------------------------------------
+// ----------------------------------------------------------------------------
 //  * You should handle the error in your code.
 
 // Generate the current passcode.
 //
-// Which is a string of 8 digit numbers and valid for
-// 15 seconds with ±5 seconds skew/tolerance (as set
-// in the above example).
+// Which is a string of 8 digit numbers and valid for with 5 skews as set in
+// the above options (5 skew = time tolerance of ± 15 seconds(period) * 5).
 passcode, err := key.PassCode()
 
 // Validate the received passcode.
@@ -113,6 +114,47 @@ rawKey := key.Secret.Bytes()
 
 - [View __more examples__ and advanced usages](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#pkg-examples) @ pkg.go.dev
 
+### ECDH Support
+
+This package supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) key agreement protocol for the TOTP secret key generation (deriving TOTP secret from ECDH [shared secret](https://en.wikipedia.org/wiki/Shared_secret)).
+
+A shared secret key can be created by exchanging a public ECDH key between two parties. This shared secret key is used to derive the TOTP key. Thus the same TOTP passcode can be shared within the same time period.
+
+This feature is useful when a __shared but ephemeral/volatile secret value (a common TOTP passcode) is required__ to increase security between two parties.
+
+For example, a time-based shared [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) for hashing or an additional value to generate a shared secret key for [symmetric encryption](https://en.wikipedia.org/wiki/Symmetric-key_algorithm).
+
+The values expire, but the possibilities are endless.
+
+```go
+// Pre-agreement between Alice and Bob.
+commonCurve := ecdh.X25519()
+commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
+
+// Key exchange between Alice and Bob.
+alicePriv, alicePub := getECDHKeysSomeHowForAlice(commonCurve)
+bobPriv, bobPub := getECDHKeysSomeHowForBob(commonCurve)
+
+// Generate a new TOTP key for Alice
+Issuer := "Example.com"
+AccountName := "alice@example.com"
+
+key, err := totp.GenerateKey(Issuer, AccountName,
+    totp.WithECDH(alicePriv, bobPub, commonCtx),
+)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Alice generates 6 digits of TOTP passcode which should be the same as Bob's.
+passcode, err := key.PassCode()
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+- [View the full ECDH example](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#example-package-ecdh) with detailed comments | GoDoc @ pkg.go.dev
+
 ## Statuses
 
 [![UnitTests](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/KEINOS/go-totp/actions/workflows/unit-tests.yml)
@@ -128,7 +170,7 @@ rawKey := key.Secret.Bytes()
 ## Contributing
 
 [![go1.18+](https://img.shields.io/badge/Go-1.18+-blue?logo=go)](https://github.com/KEINOS/go-totp/blob/main/.github/workflows/unit-tests.yml#L81 "Supported versions")
-[![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-totp.svg)](https://pkg.go.dev/github.com/KEINOS/go-totp/ "View document")
+[![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-totp.svg)](https://pkg.go.dev/github.com/KEINOS/go-totp@main/totp "View document")
 [![Opened Issues](https://img.shields.io/github/issues/KEINOS/go-totp?color=lightblue&logo=github)](https://github.com/KEINOS/go-totp/issues "opened issues")
 [![PR](https://img.shields.io/github/issues-pr/KEINOS/go-totp?color=lightblue&logo=github)](https://github.com/KEINOS/go-totp/pulls "Pull Requests")
 

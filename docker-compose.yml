@@ -25,7 +25,7 @@
 # module version, during it's process the "go.mod" file will be gone temporarily.
 # Thus, `docker compose up` will cause failure in the other container because of
 # missing "go.mod" file.
-version: "3.9"
+# =============================================================================
 
 volumes:
   GO_PKG_MOD:
