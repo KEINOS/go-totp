@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
+	"github.com/zeebo/blake3"
 )
 
 // BlockTypeTOTP is the type of a PEM encoded data block.
@@ -59,12 +60,34 @@ var totpGenerate = totp.Generate
 // Usually, `GenerateKey` with options is enough for most cases. But if you need
 // more control over the options, use this function.
 func GenerateKeyCustom(options Options) (*Key, error) {
+	internalSec := []byte{} // random by default
+
+	if options.ecdhPrivateKey != nil && options.ecdhPublicKey != nil {
+		// Generate ECDH shared secret (32 bytes)
+		ecdhSecret, err := options.ecdhPrivateKey.ECDH(options.ecdhPublicKey)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to generate ECDH shared secret")
+		}
+
+		// Derivation of a secret key of length `options.SecretSize` from the
+		// shared secret.
+		outHash := make([]byte, options.SecretSize)
+
+		blake3.DeriveKey(
+			options.ecdhCtx, // context
+			ecdhSecret,      // material
+			outHash,
+		)
+
+		internalSec = outHash
+	}
+
 	tmpOpt := totp.GenerateOpts{
 		Issuer:      options.Issuer,
 		AccountName: options.AccountName,
 		Period:      options.Period,
 		SecretSize:  options.SecretSize,
-		Secret:      []byte{},
+		Secret:      internalSec, // random if empty
 		Digits:      options.Digits.OTPDigits(),
 		Algorithm:   options.Algorithm.OTPAlgorithm(),
 		Rand:        nil,
@@ -105,13 +128,16 @@ func GenKeyFromPEM(pemKey string) (*Key, error) {
 		key := &Key{
 			Secret: block.Bytes,
 			Options: Options{
-				Issuer:      block.Headers["Issuer"],
-				AccountName: block.Headers["Account Name"],
-				Algorithm:   Algorithm(block.Headers["Algorithm"]),
-				Period:      StrToUint(block.Headers["Period"]),
-				SecretSize:  StrToUint(block.Headers["Secret Size"]),
-				Skew:        StrToUint(block.Headers["Skew"]),
-				Digits:      NewDigitsStr(block.Headers["Digits"]),
+				AccountName:    block.Headers["Account Name"],
+				Algorithm:      Algorithm(block.Headers["Algorithm"]),
+				Digits:         NewDigitsStr(block.Headers["Digits"]),
+				ecdhCtx:        "",
+				ecdhPublicKey:  nil,
+				ecdhPrivateKey: nil,
+				Issuer:         block.Headers["Issuer"],
+				Period:         StrToUint(block.Headers["Period"]),
+				SecretSize:     StrToUint(block.Headers["Secret Size"]),
+				Skew:           StrToUint(block.Headers["Skew"]),
 			},
 		}
 

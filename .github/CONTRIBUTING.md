@@ -11,7 +11,7 @@ Any PullRequest for the better is welcome!
 
 You need to pass the below before review.
 
-- `go test -race ./...` on Go 1.15 ~ latest
+- `go test -race ./...` on Go 1.22 ~ latest
 - `golangci-lint run`: see the `.golangci.yml` for the configuration
 - `golint ./...`
 - Keeping 100% of code coverage
@@ -21,11 +21,8 @@ We have CIs to check these. So we recommend to [draft PR](https://github.blog/20
 For convenience, there is a `docker-compose.yml` for the above.
 
 ```bash
-# Run test on Go 1.15
-docker compose run v1_16
-
-# Run test on Go 1.19
-docker compose run v1_19
+# Run test on Go 1.22 which is the min supported version
+docker compose run v1_22
 
 # Run test on latest Go
 docker compose run latest

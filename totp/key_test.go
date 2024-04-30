@@ -1,6 +1,8 @@
 package totp
 
 import (
+	"crypto/ecdh"
+	"crypto/rand"
 	"encoding/pem"
 	"testing"
 
@@ -14,19 +16,6 @@ import (
 // ----------------------------------------------------------------------------
 //  GenerateKey()
 // ----------------------------------------------------------------------------
-
-func TestGenerateKey_missing_issuer(t *testing.T) {
-	t.Parallel()
-
-	key, err := GenerateKey("", "alice@example.com")
-
-	require.Error(t, err,
-		"missing issuer should return error")
-	require.Nil(t, key,
-		"returned key should be nil on error")
-	require.Contains(t, err.Error(),
-		"failed to create options during key generation: issuer and accountName are required")
-}
 
 func TestGenerateKey_bad_option(t *testing.T) {
 	t.Parallel()
@@ -43,6 +32,50 @@ func TestGenerateKey_bad_option(t *testing.T) {
 		"returned key should be nil on error")
 	require.Contains(t, err.Error(),
 		"failed to apply custom options: unsupported algorithm: BADALGO")
+}
+
+func TestGenerateKey_missing_issuer(t *testing.T) {
+	t.Parallel()
+
+	key, err := GenerateKey("", "alice@example.com")
+
+	require.Error(t, err,
+		"missing issuer should return error")
+	require.Nil(t, key,
+		"returned key should be nil on error")
+	require.Contains(t, err.Error(),
+		"failed to create options during key generation: issuer and accountName are required")
+}
+
+func TestGenerateKeyCustom_curve_mismatch(t *testing.T) {
+	t.Parallel()
+
+	// Curve25519
+	curveA := ecdh.X25519()
+
+	privKeyA, err := curveA.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key for A during test")
+
+	// P-384
+	curveB := ecdh.P384()
+
+	privKeyB, err := curveB.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key for B during test")
+
+	pubKeyB := privKeyB.PublicKey()
+
+	key, err := GenerateKey("name issuer", "account name",
+		WithECDH(privKeyA, pubKeyB, "my context"),
+	)
+
+	require.Error(t, err,
+		"mismatching curve type should return error. A: %v, B: %v", privKeyA.Curve(), pubKeyB.Curve())
+	require.Contains(t, err.Error(), "failed to generate ECDH shared secret",
+		"error message should contain the error reason")
+	require.Contains(t, err.Error(), "private key and public key curves do not match",
+		"error message should contain the underlying error reason")
+	require.Nil(t, key,
+		"returned key should be nil on error")
 }
 
 // ----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-//nolint:goconst
+//nolint:gosec // potentially hardcoded credentials for testing
 package totp_test
 
 import (
@@ -10,7 +10,11 @@ import (
 	"github.com/KEINOS/go-totp/totp"
 )
 
-func Example_basic() {
+// ============================================================================
+//  Package Examples
+// ============================================================================
+
+func Example() {
 	Issuer := "Example.com"            // name of the service
 	AccountName := "alice@example.com" // name of the user
 
@@ -110,9 +114,9 @@ func Example_advanced() {
 	// Output: Passcode is valid
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: Algorithm
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleAlgorithm() {
 	// Create a new Algorithm object from a string. Choices are:
@@ -146,9 +150,9 @@ func ExampleAlgorithm_IsSupported() {
 	// Output: Algorithm is not supported
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: Digits
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleDigits() {
 	// Create a new Digits object from a number. Choices are:
@@ -175,9 +179,9 @@ func ExampleDigits() {
 	// Digit 6 OK
 }
 
-// ----------------------------------------------------------------------------
-//  Function: GenKeyFromPEM (fka GenerateKeyPEM)
-// ----------------------------------------------------------------------------
+// ============================================================================
+//  Func: GenKeyFromPEM (fka GenerateKeyPEM)
+// ============================================================================
 
 func ExampleGenKeyFromPEM() {
 	pemData := `
@@ -218,9 +222,9 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// Secret: QF7N673VMVHYWATKICRUA7V5MUGFG3Z3
 }
 
-// ----------------------------------------------------------------------------
-//  Function: GeneKeyFromURI (fka GenerateKeyURI)
-// ----------------------------------------------------------------------------
+// ============================================================================
+//  Func: GeneKeyFromURI (fka GenerateKeyURI)
+// ============================================================================
 
 func ExampleGenKeyFromURI() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
@@ -249,9 +253,9 @@ func ExampleGenKeyFromURI() {
 	// Secret: QF7N673VMVHYWATKICRUA7V5MUGFG3Z3
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: Key
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleKey() {
 	// Generate a new secret key
@@ -269,6 +273,60 @@ func ExampleKey() {
 	// Output:
 	// Issuer: alice@example.com
 	// AccountName: alice@example.com
+}
+
+// In this example, we will re-generate/recover a new Key object from a backed-up
+// secret key value.
+//
+// The point to recover the Key object is simply to overwrite the secret key value
+// with the backed-up value.
+//
+//nolint:gosec // potentially hardcoded credentials for testing
+func ExampleKey_regenerate() {
+	// The backed-up secret key value (in case of Base32 encoded)
+	oldSecret := "QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+
+	// Step1: Generate a brand new Key object
+	Issuer := "Example.com"
+	AccountName := "alice@example.com"
+
+	key, err := totp.GenerateKey(Issuer, AccountName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Step2: Cast the backed-up secret key value to a Secret object
+	newSecret, err := totp.NewSecretBase32(oldSecret)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Step3: Ensure the secret key size is the same as the new key object
+	key.Options.SecretSize = uint(len(newSecret.Bytes()))
+
+	// Step4: Overwrite the secret key value with the backed-up value
+	key.Secret = newSecret
+
+	// Step5: Backup the TOTP key object in PEM format this time
+	keyPEM, err := key.PEM()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(keyPEM) // Save this data
+	//
+	// Output:
+	// -----BEGIN TOTP SECRET KEY-----
+	// Account Name: alice@example.com
+	// Algorithm: SHA1
+	// Digits: 6
+	// Issuer: Example.com
+	// Period: 30
+	// Secret Size: 20
+	// Skew: 0
+	//
+	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
+	// -----END TOTP SECRET KEY-----
 }
 
 func ExampleKey_PEM() {
@@ -417,9 +475,9 @@ func ExampleKey_URI() {
 	// Output: URI returned as expected
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Func: NewOptions()
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleNewOptions() {
 	// Create a new Options object with default values.
@@ -451,9 +509,9 @@ func ExampleNewOptions() {
 	// Error msg: issuer and accountName are required
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Func: NewSecretBytes()
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleNewSecretBytes() {
 	data := []byte("some secret")
@@ -477,12 +535,12 @@ func ExampleNewSecretBytes() {
 	// Secret Base62: bfF9D3ygDyVQZp2
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: Options
-// ----------------------------------------------------------------------------
+// ============================================================================
 
+//nolint:exhaustruct // allow missing fields
 func ExampleOptions() {
-	//nolint:exhaustruct // allow missing fields
 	options := totp.Options{
 		Issuer:      "Example.com",
 		AccountName: "alice@example.com",
@@ -518,15 +576,13 @@ func ExampleOptions() {
 	// Skew: 0
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: Secret
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleSecret() {
 	// The below two lines are the same but with different base-encodings.
-	//nolint:gosec // potentially hardcoded credentials for testing
 	base32Secret := "MZXW6IDCMFZCAYTVPJ5A"
-	//nolint:gosec // potentially hardcoded credentials for testing
 	base62Secret := "FegjEGvm7g03GQye"
 
 	// Instantiate a new Secret object from a base32 encoded string.
@@ -562,9 +618,9 @@ func ExampleSecret() {
 	// Two secrets are the same.
 }
 
-// ----------------------------------------------------------------------------
-//  Function: StrToUint
-// ----------------------------------------------------------------------------
+// ============================================================================
+//  Func: StrToUint
+// ============================================================================
 
 func ExampleStrToUint() {
 	str1 := "1234567890"
@@ -583,9 +639,9 @@ func ExampleStrToUint() {
 	// uint2: 0, type: uint
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Type: URI
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 func ExampleURI() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
@@ -633,9 +689,9 @@ func ExampleURI_IssuerFromPath() {
 	// Output: Example.com
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 //  Func: Validate()
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 // Validate function is a short hand of totp.Key.Validate() functionality.
 func ExampleValidate() {
