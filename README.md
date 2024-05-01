@@ -54,7 +54,7 @@ func Example() {
     // - Algorithm: SHA1
     // - Period: 30
     // - Secret Size: 128
-    // - Skew (time tolerance): 0
+    // - Skew (time tolerance): 1
     // - Digits: 6
     // * Validation result: Passcode is valid
 }

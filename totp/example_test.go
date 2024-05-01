@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/KEINOS/go-totp/totp"
 )
@@ -47,7 +48,7 @@ func Example() {
 	// - Algorithm: SHA1
 	// - Period: 30
 	// - Secret Size: 128
-	// - Skew (time tolerance): 0
+	// - Skew (time tolerance): 1
 	// - Digits: 6
 	// * Validation result: Passcode is valid
 }
@@ -192,7 +193,7 @@ Digits: 8
 Issuer: Example.com
 Period: 30
 Secret Size: 64
-Skew: 0
+Skew: 1
 
 gX7ff3VlT4sCakCjQH69ZQxTbzs=
 -----END TOTP SECRET KEY-----`
@@ -218,7 +219,7 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 64
-	// Skew: 0
+	// Skew: 1
 	// Secret: QF7N673VMVHYWATKICRUA7V5MUGFG3Z3
 }
 
@@ -258,7 +259,7 @@ func ExampleGenKeyFromURI() {
 // ============================================================================
 
 func ExampleKey() {
-	// Generate a new secret key
+	// Generate a new secret key with default options.
 	Issuer := "Example.com"
 	AccountName := "alice@example.com"
 
@@ -267,12 +268,20 @@ func ExampleKey() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Issuer:", key.Options.AccountName)
-	fmt.Println("AccountName:", key.Options.AccountName)
+	// Generate 6 digits passcode (valid for 30 seconds)
+	// For generating a passcode for a custom time, use PassCodeCustom() method.
+	passCode, err := key.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate the passcode
+	if key.Validate(passCode) {
+		fmt.Println("Given passcode is valid")
+	}
 	//
 	// Output:
-	// Issuer: alice@example.com
-	// AccountName: alice@example.com
+	// Given passcode is valid
 }
 
 // In this example, we will re-generate/recover a new Key object from a backed-up
@@ -323,10 +332,85 @@ func ExampleKey_regenerate() {
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 20
-	// Skew: 0
+	// Skew: 1
 	//
 	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// -----END TOTP SECRET KEY-----
+}
+
+func ExampleKey_PassCode() {
+	// Generate a new secret key
+	Issuer := "Example.com"
+	AccountName := "alice@example.com"
+
+	key, err := totp.GenerateKey(Issuer, AccountName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate 6 digits passcode (valid for 30 seconds)
+	code, err := key.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate the passcode
+	if key.Validate(code) {
+		fmt.Println("Passcode is valid with current time")
+	}
+
+	// Validate the passcode with a custom time
+	validationTime := time.Now().Add(-300 * time.Second)
+
+	if key.ValidateCustom(code, validationTime) {
+		fmt.Println("Passcode is valid with custom time")
+	} else {
+		fmt.Println("Passcode is invalid with custom time")
+	}
+	//
+	// Output:
+	// Passcode is valid with current time
+	// Passcode is invalid with custom time
+}
+
+func ExampleKey_PassCodeCustom() {
+	// Generate a new secret key
+	Issuer := "Example.com"
+	AccountName := "alice@example.com"
+
+	key, err := totp.GenerateKey(Issuer, AccountName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	timeNow := time.Now()
+
+	// Generate a passcode for a specific time (300 seconds ago)
+	code, err := key.PassCodeCustom(timeNow.Add(-300 * time.Second))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validating with the current time should fail
+	if key.Validate(code) {
+		fmt.Println("Passcode is valid with current time")
+	} else {
+		fmt.Println("Passcode is invalid with current time")
+	}
+
+	// To validate a passcode for a specific time, use ValidateCustom()
+	// method.
+	validationTime := timeNow.Add(-300 * time.Second)
+
+	if key.ValidateCustom(code, validationTime) {
+		fmt.Println("Passcode is valid with custom time")
+	} else {
+		fmt.Println("Passcode is invalid with custom time")
+	}
+	//
+	// Output:
+	// Passcode is invalid with current time
+	// Passcode is valid with custom time
 }
 
 func ExampleKey_PEM() {
@@ -353,7 +437,7 @@ func ExampleKey_PEM() {
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 20
-	// Skew: 0
+	// Skew: 1
 	//
 	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// -----END TOTP SECRET KEY-----
@@ -573,7 +657,7 @@ func ExampleOptions() {
 	// Digits: 6
 	// Period: 30
 	// Secret Size: 128
-	// Skew: 0
+	// Skew: 1
 }
 
 // ============================================================================

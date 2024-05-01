@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/pem"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	origOtp "github.com/pquerna/otp"
@@ -290,4 +291,42 @@ func TestKey_PEM(t *testing.T) {
 	require.Error(t, err, "missing key should return error")
 	require.Contains(t, err.Error(), "failed to encode key to PEM")
 	require.Empty(t, pemOut)
+}
+
+// ============================================================================
+//  Tests for fixed issues
+// ============================================================================
+//  These tests reproduce the issues and should pass if the issue is fixed.
+
+// Issue #42.
+// If `Period` is set short with `Skew=0`, the passcode validation often fails.
+func TestKey_skew_as_one(t *testing.T) {
+	t.Parallel()
+
+	key, err := GenerateKey("dummy issuer", "dummy account")
+	require.NoError(t, err, "failed to generate TOTP key during test setup")
+
+	key.Options.Period = 3              // set short to 3 seconds
+	timeSleep := key.Options.Period - 1 // sleep almost last-minute
+	numValid := 0
+	numIterations := 10
+
+	// If skew is set to 0, the validation fails 60-70% of the time.
+	for range numIterations {
+		passCode, err := key.PassCode()
+		require.NoError(t, err, "failed to generate passcode")
+
+		// Sleep to validate passcode with an almost last-minute deadline.
+		time.Sleep(time.Second * time.Duration(timeSleep))
+
+		if ok := key.Validate(passCode); ok {
+			numValid++
+		}
+	}
+
+	expect := numIterations
+	actual := numValid
+
+	require.Equal(t, expect, actual,
+		"not all generated passcodes are valid")
 }

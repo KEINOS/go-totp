@@ -214,6 +214,22 @@ func (k *Key) PassCode() (string, error) {
 	)
 }
 
+// PassCodeCustom is similar to PassCode() but allows you to specify the time
+// to generate the passcode.
+func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
+	//nolint:wrapcheck // we won't wrap the error here
+	return totp.GenerateCodeCustom(
+		k.Secret.Base32(),
+		genTime.UTC(),
+		totp.ValidateOpts{
+			Period:    k.Options.Period,
+			Skew:      k.Options.Skew,
+			Digits:    k.Options.Digits.OTPDigits(),
+			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
+		},
+	)
+}
+
 // PEM returns the key in PEM formatted string.
 func (k *Key) PEM() (string, error) {
 	out := pemEncodeToMemory(&pem.Block{
@@ -284,6 +300,21 @@ func (k *Key) URI() string {
 }
 
 // Validate returns true if the given passcode is valid for the current time.
+// For custom time, use ValidateCustom() instead.
 func (k *Key) Validate(passcode string) bool {
-	return Validate(passcode, k.Secret.Base32(), k.Options)
+	return Validate(
+		passcode,
+		k.Secret.Base32(),
+		k.Options,
+	)
+}
+
+// ValidateCustom returns true if the given passcode is valid for the custom time.
+func (k *Key) ValidateCustom(passcode string, validationTime time.Time) bool {
+	return ValidateCustom(
+		passcode,
+		k.Secret.Base32(),
+		validationTime.UTC(),
+		k.Options,
+	)
 }

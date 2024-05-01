@@ -12,7 +12,7 @@ const (
 	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
 	OptionPeriodDefault     = uint(30)          // 30 seconds is recommended in RFC-6238.
 	OptionSecretSizeDefault = uint(128)         // 128 Bytes.
-	OptionSkewDefault       = uint(0)           // ± Periods. No tolerance.
+	OptionSkewDefault       = uint(1)           // ± 1 period of tolerance.
 )
 
 // ============================================================================
@@ -49,9 +49,10 @@ type Options struct {
 	Period uint
 	// SecretSize is the size of the generated Secret. (Default: 128 bytes)
 	SecretSize uint
-	// Skew is the periods before or after the current time to allow.
+	// Skew is the periods before or after the current time to allow. (Default: 1)
+	//
 	// Value of 1 allows up to Period of either side of the specified time.
-	// Defaults to 0 allowed skews. Values greater than 1 are likely sketchy.
+	// Values greater than 1 are likely sketchy.
 	Skew uint
 }
 
@@ -97,8 +98,7 @@ func (opts *Options) SetDefault() {
 		opts.Digits = OptionDigitsDefault
 	}
 
-	// This is redundant, but it's here to make sure that the default value is
-	// always set.
+	// Fix #42
 	if opts.Skew == 0 {
 		opts.Skew = OptionSkewDefault
 	}
