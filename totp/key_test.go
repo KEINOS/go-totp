@@ -301,54 +301,23 @@ func TestKey_PEM(t *testing.T) {
 // Issue #42.
 // If `Period` is set short with `Skew=0`, the passcode validation often fails.
 func TestKey_skew_as_one(t *testing.T) {
-	// Backup and defer restore
-	oldTimeNow := timeNow
-	defer func() {
-		timeNow = oldTimeNow
-	}()
-
 	key, err := GenerateKey("dummy issuer", "dummy account")
 	require.NoError(t, err, "failed to generate TOTP key during test setup")
 
-	key.Options.Period = 3 // 3 seconds
-	//key.Options.Skew = 1   // ± 1 period of tolerance
-
-	getCode := func(t *testing.T, key *Key) string {
-		t.Helper()
-
-		// Monkey patch timeNow
-		timeNow = func() time.Time {
-			return time.Now()
-		}
-
-		passCode, err := key.PassCode()
-		require.NoError(t, err, "failed to generate passcode")
-
-		return passCode
-	}
-
-	validateCode := func(t *testing.T, key *Key, passCode string) bool {
-		t.Helper()
-
-		// Monkey patch timeNow
-		timeNow = func() time.Time {
-			return time.Now().Add(time.Second * 200)
-		}
-
-		// sleep for 2 sec. this causes error 60% of the time
-		time.Sleep(time.Second * 2)
-
-		return key.Validate(passCode)
-	}
-
+	key.Options.Period = 3              // set short to 3 seconds
+	timeSleep := key.Options.Period - 1 // sleep almost last-minute
 	numValid := 0
 	numIterations := 10
 
+	// If skew is set to 0, the validation fails 60-70% of the time.
 	for i := 0; i < numIterations; i++ {
-		passCode := getCode(t, key)
-		ok := validateCode(t, key, passCode)
+		passCode, err := key.PassCode()
+		require.NoError(t, err, "failed to generate passcode")
 
-		if ok {
+		// Sleep to validate passcode with an almost last-minute deadline.
+		time.Sleep(time.Second * time.Duration(timeSleep))
+
+		if ok := key.Validate(passCode); ok {
 			numValid++
 		}
 	}
