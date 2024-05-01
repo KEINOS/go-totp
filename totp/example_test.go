@@ -48,7 +48,7 @@ func Example() {
 	// - Algorithm: SHA1
 	// - Period: 30
 	// - Secret Size: 128
-	// - Skew (time tolerance): 0
+	// - Skew (time tolerance): 1
 	// - Digits: 6
 	// * Validation result: Passcode is valid
 }
@@ -193,7 +193,7 @@ Digits: 8
 Issuer: Example.com
 Period: 30
 Secret Size: 64
-Skew: 0
+Skew: 1
 
 gX7ff3VlT4sCakCjQH69ZQxTbzs=
 -----END TOTP SECRET KEY-----`
@@ -219,7 +219,7 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 64
-	// Skew: 0
+	// Skew: 1
 	// Secret: QF7N673VMVHYWATKICRUA7V5MUGFG3Z3
 }
 
@@ -332,7 +332,7 @@ func ExampleKey_regenerate() {
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 20
-	// Skew: 0
+	// Skew: 1
 	//
 	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// -----END TOTP SECRET KEY-----
@@ -360,7 +360,7 @@ func ExampleKey_PassCode() {
 	}
 
 	// Validate the passcode with a custom time
-	validationTime := time.Now().Add(-30 * time.Second)
+	validationTime := time.Now().Add(-300 * time.Second)
 
 	if key.ValidateCustom(code, validationTime) {
 		fmt.Println("Passcode is valid with custom time")
@@ -385,8 +385,8 @@ func ExampleKey_PassCodeCustom() {
 
 	timeNow := time.Now()
 
-	// Generate a passcode for a specific time (30 seconds ago)
-	code, err := key.PassCodeCustom(timeNow.Add(-30 * time.Second))
+	// Generate a passcode for a specific time (300 seconds ago)
+	code, err := key.PassCodeCustom(timeNow.Add(-300 * time.Second))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -400,7 +400,7 @@ func ExampleKey_PassCodeCustom() {
 
 	// To validate a passcode for a specific time, use ValidateCustom()
 	// method.
-	validationTime := timeNow.Add(-30 * time.Second)
+	validationTime := timeNow.Add(-300 * time.Second)
 
 	if key.ValidateCustom(code, validationTime) {
 		fmt.Println("Passcode is valid with custom time")
@@ -437,7 +437,7 @@ func ExampleKey_PEM() {
 	// Issuer: Example.com
 	// Period: 30
 	// Secret Size: 20
-	// Skew: 0
+	// Skew: 1
 	//
 	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
 	// -----END TOTP SECRET KEY-----
@@ -657,7 +657,7 @@ func ExampleOptions() {
 	// Digits: 6
 	// Period: 30
 	// Secret Size: 128
-	// Skew: 0
+	// Skew: 1
 }
 
 // ============================================================================

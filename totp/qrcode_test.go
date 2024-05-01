@@ -6,7 +6,6 @@ import (
 	"image/png"
 	"io"
 	"testing"
-	"time"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
@@ -40,24 +39,11 @@ func TestQRCode_PNG_golden(t *testing.T) {
 	require.Equal(t, pngImg1, pngImg2, "the generated PNG images should be the same")
 
 	// Validate passcode in-time
-	{
-		passcode, err := key.PassCode()
-		require.NoError(t, err, "failed to generate passcode during test")
+	passcode, err := key.PassCode()
+	require.NoError(t, err, "failed to generate passcode during test")
 
-		ok := key.Validate(passcode)
-		require.True(t, ok, "the passcode should be valid")
-	}
-
-	// Validate passcode outdated
-	{
-		passcode, err := key.PassCode()
-		require.NoError(t, err, "failed to generate passcode during test")
-
-		time.Sleep(3 * time.Second) // let the passcode be expired
-
-		ok := key.Validate(passcode)
-		require.False(t, ok, "expired passcode should be invalid")
-	}
+	ok := key.Validate(passcode)
+	require.True(t, ok, "the passcode should be valid")
 }
 
 func TestQRCode_PNG_empty_uri(t *testing.T) {

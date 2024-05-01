@@ -301,6 +301,8 @@ func TestKey_PEM(t *testing.T) {
 // Issue #42.
 // If `Period` is set short with `Skew=0`, the passcode validation often fails.
 func TestKey_skew_as_one(t *testing.T) {
+	t.Parallel()
+
 	key, err := GenerateKey("dummy issuer", "dummy account")
 	require.NoError(t, err, "failed to generate TOTP key during test setup")
 
@@ -310,7 +312,7 @@ func TestKey_skew_as_one(t *testing.T) {
 	numIterations := 10
 
 	// If skew is set to 0, the validation fails 60-70% of the time.
-	for i := 0; i < numIterations; i++ {
+	for range numIterations {
 		passCode, err := key.PassCode()
 		require.NoError(t, err, "failed to generate passcode")
 
