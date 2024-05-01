@@ -14,19 +14,25 @@ You need to pass the below before review.
 - `go test -race ./...` on Go 1.22 ~ latest
 - `golangci-lint run`: see the `.golangci.yml` for the configuration
 - `golint ./...`
-- Keeping 100% of code coverage
+- Keeping the current code coverage (if possible)
 
 We have CIs to check these. So we recommend to [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/) before you implement something.
 
 For convenience, there is a `docker-compose.yml` for the above.
 
 ```bash
-# Run test on Go 1.22 which is the min supported version
+# Preparation
+docker compose build
+
+# To run test on Go 1.22 which is the min supported version:
 docker compose run v1_22
 
-# Run test on latest Go
+# To run test on latest Go:
 docker compose run latest
 
-# Run linters (golangci-lint)
+# To run linters (golangci-lint):
 docker compose run lint
+
+# To run vulnerability check:
+docker compose run vuln
 ```
