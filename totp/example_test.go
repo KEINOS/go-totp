@@ -290,8 +290,11 @@ func ExampleKey() {
 // The point to recover the Key object is simply to overwrite the secret key value
 // with the backed-up value.
 //
+// If you simply want to validate a passcode with a backed-up secret key value,
+// use the totp.Validate() function instead.
+//
 //nolint:gosec // potentially hardcoded credentials for testing
-func ExampleKey_regenerate() {
+func ExampleKey_regenerate1() {
 	// The backed-up secret key value (in case of Base32 encoded)
 	oldSecret := "QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
@@ -317,6 +320,57 @@ func ExampleKey_regenerate() {
 	key.Secret = newSecret
 
 	// Step5: Backup the TOTP key object in PEM format this time
+	keyPEM, err := key.PEM()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(keyPEM) // Save this data
+	//
+	// Output:
+	// -----BEGIN TOTP SECRET KEY-----
+	// Account Name: alice@example.com
+	// Algorithm: SHA1
+	// Digits: 6
+	// Issuer: Example.com
+	// Period: 30
+	// Secret Size: 20
+	// Skew: 1
+	//
+	// gX7ff3VlT4sCakCjQH69ZQxTbzs=
+	// -----END TOTP SECRET KEY-----
+}
+
+// In this example, we will re-generate/recover a new Key object from a backed-up
+// secret key value.
+//
+// This does the same as the previous example but with a different approach. Choose
+// the one that suits your needs.
+//
+//nolint:gosec // potentially hardcoded credentials for testing
+func ExampleKey_regenerate2() {
+	// Step1: Generate a totp.Secret object from a backed-up secret key value
+	secret, err := totp.NewSecretBase32("QF7N673VMVHYWATKICRUA7V5MUGFG3Z3")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Step2: Generate a new totp.Options object with default values but with the
+	// secret key size set to the same as the backed-up secret key value.
+	options, err := totp.NewOptions("Example.com", "alice@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	options.SecretSize = uint(len(secret.Bytes()))
+
+	// Step3: Generate a new totp.Key object.
+	key := totp.Key{
+		Secret:  secret,
+		Options: *options,
+	}
+
+	// Step4: Backup the TOTP key object in PEM format this time
 	keyPEM, err := key.PEM()
 	if err != nil {
 		log.Fatal(err)
