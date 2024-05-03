@@ -18,7 +18,7 @@ import (
 //  GenerateKey()
 // ----------------------------------------------------------------------------
 
-func TestGenerateKey_bad_option(t *testing.T) {
+func TestGenerateKey_bad_algorithm(t *testing.T) {
 	t.Parallel()
 
 	key, err := GenerateKey(
@@ -28,11 +28,13 @@ func TestGenerateKey_bad_option(t *testing.T) {
 	)
 
 	require.Error(t, err,
-		"missing issuer should return error")
+		"undefined algorithm should return error")
 	require.Nil(t, key,
 		"returned key should be nil on error")
-	require.Contains(t, err.Error(),
-		"failed to apply custom options: unsupported algorithm: BADALGO")
+	require.Contains(t, err.Error(), "failed to apply custom options",
+		"error message should contain the error reason")
+	require.Contains(t, err.Error(), "unsupported algorithm: BADALGO",
+		"error message should contain the underlying error reason")
 }
 
 func TestGenerateKey_missing_issuer(t *testing.T) {
@@ -46,6 +48,35 @@ func TestGenerateKey_missing_issuer(t *testing.T) {
 		"returned key should be nil on error")
 	require.Contains(t, err.Error(),
 		"failed to create options during key generation: issuer and accountName are required")
+}
+
+func TestGenerateKey_key_legth_is_zero(t *testing.T) {
+	t.Parallel()
+
+	// Generate ECDH keys
+	paramCommon := ecdh.P256()
+
+	privKeyA, err := paramCommon.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key for Alice during test")
+
+	privKeyB, err := paramCommon.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key for Bob during test")
+
+	pubKeyB := privKeyB.PublicKey()
+
+	key, err := GenerateKey("Example.com", "alice@example.com",
+		WithECDH(privKeyA, pubKeyB, "my context"),
+		WithSecretSize(0),
+	)
+
+	require.Error(t, err,
+		"zero secret size should return error")
+	require.Nil(t, key,
+		"returned key should be nil on error")
+	require.Contains(t, err.Error(), "failed to derive key from ECDH shared secret",
+		"error message should contain the error reason")
+	require.Contains(t, err.Error(), "invalid output length",
+		"error message should contain the underlying error reason")
 }
 
 func TestGenerateKeyCustom_curve_mismatch(t *testing.T) {

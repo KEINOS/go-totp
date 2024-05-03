@@ -4,6 +4,7 @@ import (
 	"crypto/ecdh"
 
 	"github.com/pkg/errors"
+	"github.com/zeebo/blake3"
 )
 
 // Constants for the default values of the options.
@@ -14,6 +15,24 @@ const (
 	OptionSecretSizeDefault = uint(128)         // 128 Bytes.
 	OptionSkewDefault       = uint(1)           // ± 1 period of tolerance.
 )
+
+// OptionKDFDefault is the default key derivation function (KDF) for TOTP secret
+// key derivation from ECDH shared secret. The underlying KDF is BLAKE3.
+func OptionKDFDefault(secret, ctx []byte, outLen uint) ([]byte, error) {
+	out := int(outLen)
+	if out <= 0 {
+		return nil, errors.Errorf("invalid output length: %d", out)
+	}
+
+	outHash := make([]byte, out)
+	blake3.DeriveKey(
+		string(ctx), // context
+		secret,      // material
+		outHash,
+	)
+
+	return outHash, nil
+}
 
 // ============================================================================
 //  Type: Options
@@ -44,6 +63,9 @@ type Options struct {
 	// Issuer is the name of the issuer of the secret key.
 	// (eg, organization, company, domain)
 	Issuer string
+	// kdf is the key derivation function used to derive the TOTP secret key if the
+	// ECDH private and public keys are set.
+	kdf func(secret, ctx []byte, outLen uint) ([]byte, error)
 	// Period is the number of seconds a TOTP hash is valid for.
 	// (Default: 30 seconds)
 	Period uint
@@ -86,16 +108,16 @@ func (opts *Options) SetDefault() {
 		opts.Algorithm = OptionAlgorithmDefault
 	}
 
+	if opts.Digits == 0 {
+		opts.Digits = OptionDigitsDefault
+	}
+
 	if opts.Period == 0 {
 		opts.Period = OptionPeriodDefault
 	}
 
 	if opts.SecretSize == 0 {
 		opts.SecretSize = OptionSecretSizeDefault
-	}
-
-	if opts.Digits == 0 {
-		opts.Digits = OptionDigitsDefault
 	}
 
 	// Fix #42

@@ -120,14 +120,6 @@ rawKey := key.Secret.Bytes()
 
 This package supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) key agreement protocol for the TOTP secret key generation (deriving TOTP secret from ECDH [shared secret](https://en.wikipedia.org/wiki/Shared_secret)).
 
-A shared secret key can be created by exchanging a public ECDH key between two parties. This shared secret key is used to derive the TOTP key. Thus the same TOTP passcode can be shared within the same time period.
-
-This feature is useful when a __shared but ephemeral/volatile secret value (a common TOTP passcode) is required__ to increase security between two parties.
-
-For example, a time-based shared [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) for hashing or an additional value to generate a shared secret key for [symmetric encryption](https://en.wikipedia.org/wiki/Symmetric-key_algorithm).
-
-The values expire, but the possibilities are endless.
-
 ```go
 // Pre-agreement between Alice and Bob.
 commonCurve := ecdh.X25519()
@@ -137,7 +129,10 @@ commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
 alicePriv, alicePub := getECDHKeysSomeHowForAlice(commonCurve)
 bobPriv, bobPub := getECDHKeysSomeHowForBob(commonCurve)
 
-// Generate a new TOTP key for Alice
+// Generate a new TOTP key for Alice using:
+// - Alice's ECDH private key
+// - Bob's ECDH public key
+// - Alice and Bob's common context string
 Issuer := "Example.com"
 AccountName := "alice@example.com"
 
@@ -156,6 +151,14 @@ if err != nil {
 ```
 
 - [View the full ECDH example](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#example-package-ecdh) with detailed comments | GoDoc @ pkg.go.dev
+
+A shared secret key can be created by exchanging a public ECDH key between two parties. This shared secret key is used to derive the TOTP key. Thus the same TOTP passcode can be shared within the same time period.
+
+This feature is useful when a __shared but ephemeral/volatile secret value (a common TOTP passcode) is required__ to increase security between two parties.
+
+For example, a time-based shared [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) for hashing or an additional value to generate a shared secret key for [symmetric encryption](https://en.wikipedia.org/wiki/Symmetric-key_algorithm).
+
+The values expire, but the possibilities are endless.
 
 ## Contributing
 
