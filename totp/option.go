@@ -62,8 +62,9 @@ func WithDigits(digits Digits) Option {
 //
 //     Both parties must use the same context to generate the same shared secret.
 //     The context string can be anything, but it must be consistent between the
-//     two parties.
-//     The recommended format is "[issuer] [sorted account names] [purpose] [version]".
+//     two parties. The recommended format is:
+//
+//     "[issuer] [sorted account names] [purpose] [version]"
 //
 //     e.g.) "example.com alice@example.com bob@example.com TOTP secret v1"
 func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context string) Option {
@@ -77,6 +78,23 @@ func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context stri
 		opts.ecdhPrivateKey = localKey
 		opts.ecdhPublicKey = remoteKey
 		opts.ecdhCtx = context
+
+		return nil
+	}
+}
+
+// WithECDHKDF sets the userKDF, user definded key derivation function, to derive
+// a TOTP secret key from a ECDH shared secret.
+//
+// The function must implement the totp.KDF interface. If userKDF is nil, it uses
+// the default KDF which is Blake3.
+func WithECDHKDF(userKDF func(secret, ctx []byte, outLen uint) ([]byte, error)) Option {
+	return func(opts *Options) error {
+		if opts == nil {
+			return errors.New(errNilOptions)
+		}
+
+		opts.kdf = userKDF
 
 		return nil
 	}
@@ -109,8 +127,9 @@ func WithSecretSize(size uint) Option {
 }
 
 // WithSkew sets the periods before or after the current time to allow.
+//
 // Value of 1 allows up to Period of either side of the specified time.
-// Defaults to 0 allowed skews. Values greater than 1 are likely sketchy.
+// Defaults to 1 allowed skews. Values greater than 1 are likely sketchy.
 func WithSkew(skew uint) Option {
 	return func(opts *Options) error {
 		if opts == nil {

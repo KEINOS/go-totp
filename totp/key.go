@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/pquerna/otp/totp"
-	"github.com/zeebo/blake3"
 )
 
 // BlockTypeTOTP is the type of a PEM encoded data block.
@@ -60,7 +59,7 @@ var totpGenerate = totp.Generate
 // Usually, `GenerateKey` with options is enough for most cases. But if you need
 // more control over the options, use this function.
 func GenerateKeyCustom(options Options) (*Key, error) {
-	internalSec := []byte{} // random by default
+	internalSec := []byte{} // random by default (if len = 0)
 
 	if options.ecdhPrivateKey != nil && options.ecdhPublicKey != nil {
 		// Generate ECDH shared secret (32 bytes)
@@ -69,17 +68,14 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 			return nil, errors.Wrap(err, "failed to generate ECDH shared secret")
 		}
 
-		// Derivation of a secret key of length `options.SecretSize` from the
-		// shared secret.
-		outHash := make([]byte, options.SecretSize)
+		if options.kdf == nil {
+			options.kdf = OptionKDFDefault
+		}
 
-		blake3.DeriveKey(
-			options.ecdhCtx, // context
-			ecdhSecret,      // material
-			outHash,
-		)
-
-		internalSec = outHash
+		internalSec, err = options.kdf(ecdhSecret, []byte(options.ecdhCtx), options.SecretSize)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to derive key from ECDH shared secret")
+		}
 	}
 
 	tmpOpt := totp.GenerateOpts{
@@ -135,6 +131,7 @@ func GenKeyFromPEM(pemKey string) (*Key, error) {
 				ecdhPublicKey:  nil,
 				ecdhPrivateKey: nil,
 				Issuer:         block.Headers["Issuer"],
+				kdf:            nil,
 				Period:         StrToUint(block.Headers["Period"]),
 				SecretSize:     StrToUint(block.Headers["Secret Size"]),
 				Skew:           StrToUint(block.Headers["Skew"]),

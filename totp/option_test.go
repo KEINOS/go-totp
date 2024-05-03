@@ -16,6 +16,7 @@ func TestOption_nil_input(t *testing.T) {
 	for index, fnOpt := range []Option{
 		WithAlgorithm(Algorithm("SHA1")),
 		WithECDH(nil, nil, ""),
+		WithECDHKDF(nil),
 		WithPeriod(30),
 		WithSecretSize(128),
 		WithSkew(0),
@@ -24,6 +25,9 @@ func TestOption_nil_input(t *testing.T) {
 		// functions shuold return error when nil input is given.
 		err := fnOpt(nil)
 
-		require.Error(t, err, "Test %d: expected error, got nil", index)
+		require.Error(t, err,
+			"Test %d: expected error, got nil", index+1)
+		require.Contains(t, err.Error(), errNilOptions,
+			"Test %d: unexpected error message", index+1)
 	}
 }
