@@ -2,6 +2,7 @@ package totp
 
 import (
 	"encoding/base32"
+	"encoding/base64"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -24,6 +25,7 @@ func NewSecretBytes(input []byte) Secret {
 }
 
 // NewSecretBase32 creates a new Secret object from a base32 encoded string.
+// The string must be encoded with no padding.
 func NewSecretBase32(base32string string) (Secret, error) {
 	decoded, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(base32string)
 	if err != nil {
@@ -47,11 +49,22 @@ func NewSecretBase62(base62string string) (Secret, error) {
 	return Secret(decoded.Bytes()), nil
 }
 
+// NewSecretBase64 creates a new Secret object from a base64 encoded string.
+// The string must be encoded with standard (RFC 4648) padding.
+func NewSecretBase64(base64string string) (Secret, error) {
+	decoded, err := base64.StdEncoding.DecodeString(base64string)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode base64 string")
+	}
+
+	return Secret(decoded), nil
+}
+
 // ----------------------------------------------------------------------------
 //  Methods
 // ----------------------------------------------------------------------------
 
-// Base32 returns the secret as a base32 encoded string.
+// Base32 returns the secret as a base32 encoded string with no padding.
 // Which is the standard format used by TOTP URIs.
 func (s Secret) Base32() string {
 	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(s)
@@ -66,7 +79,14 @@ func (s Secret) Base62() string {
 	return i.SetBytes(s[:]).Text(encBase62)
 }
 
+// Base64 returns the secret as a base64 encoded string with padding (RFC 4648).
+// This encoding is used in PEM format exports.
+func (s Secret) Base64() string {
+	return base64.StdEncoding.EncodeToString(s)
+}
+
 // Bytes returns the secret as a byte slice.
+// This is the raw format of the secret.
 func (s Secret) Bytes() []byte {
 	return s
 }

@@ -34,6 +34,19 @@ func TestNewSecretBase62_invalid_string(t *testing.T) {
 }
 
 // ----------------------------------------------------------------------------
+//  NewSecretBase64()
+// ----------------------------------------------------------------------------
+
+func TestNewSecretBase64_invalid_string(t *testing.T) {
+	t.Parallel()
+
+	_, err := NewSecretBase64("invalid string")
+
+	require.Error(t, err, "invalid string should return error")
+	require.Contains(t, err.Error(), "failed to decode base64 string")
+}
+
+// ----------------------------------------------------------------------------
 //  Secret.Base32()
 // ----------------------------------------------------------------------------
 

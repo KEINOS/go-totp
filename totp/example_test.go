@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/KEINOS/go-totp/totp"
@@ -663,6 +664,7 @@ func ExampleNewSecretBytes() {
 	fmt.Println("Secret string:", secret.String())
 	fmt.Println("Secret Base32:", secret.Base32())
 	fmt.Println("Secret Base62:", secret.Base62())
+	fmt.Println("Secret Base64:", secret.Base64())
 	//
 	// Output:
 	// Type: totp.Secret
@@ -671,6 +673,7 @@ func ExampleNewSecretBytes() {
 	// Secret string: ONXW2ZJAONSWG4TFOQ
 	// Secret Base32: ONXW2ZJAONSWG4TFOQ
 	// Secret Base62: bfF9D3ygDyVQZp2
+	// Secret Base64: c29tZSBzZWNyZXQ=
 }
 
 // ============================================================================
@@ -719,9 +722,10 @@ func ExampleOptions() {
 // ============================================================================
 
 func ExampleSecret() {
-	// The below two lines are the same but with different base-encodings.
+	// The below lines are the same but with different base-encodings.
 	base32Secret := "MZXW6IDCMFZCAYTVPJ5A"
 	base62Secret := "FegjEGvm7g03GQye"
+	base64Secret := "Zm9vIGJhciBidXp6"
 
 	// Instantiate a new Secret object from a base32 encoded string.
 	secret32, err := totp.NewSecretBase32(base32Secret)
@@ -735,25 +739,86 @@ func ExampleSecret() {
 		log.Fatal(err)
 	}
 
+	// Instantiate a new Secret object from a base64 encoded string.
+	secret64, err := totp.NewSecretBase64(base64Secret)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Once instantiated, you can use the Secret object to get the secret in
 	// different base-encodings.
-	fmt.Println("Get as base62 encoded string:", secret32.Base62())
-	fmt.Println("Get as base32 encoded string:", secret62.Base32())
+	fmt.Println("Get as base32 encoded string:", secret64.Base32())
+	fmt.Println("Get as base62 encoded string:", secret64.Base62())
+	fmt.Println("Get as base64 encoded string:", secret32.Base64())
 
 	// String() method is equivalent to Base32()
 	if secret62.String() == secret62.Base32() {
 		fmt.Println("String() is equivalent to Base32()")
 	}
 
-	if secret32.String() == secret62.String() {
-		fmt.Println("Two secrets are the same.")
+	// To obtain the raw secret value, use the Bytes() method.
+	fmt.Printf("Base32 secret: %x\n", secret32.Bytes())
+	fmt.Printf("Base62 secret: %x\n", secret62.Bytes())
+	fmt.Printf("Base64 secret: %x\n", secret64.Bytes())
+	//
+	// Output:
+	// Get as base32 encoded string: MZXW6IDCMFZCAYTVPJ5A
+	// Get as base62 encoded string: FegjEGvm7g03GQye
+	// Get as base64 encoded string: Zm9vIGJhciBidXp6
+	// String() is equivalent to Base32()
+	// Base32 secret: 666f6f206261722062757a7a
+	// Base62 secret: 666f6f206261722062757a7a
+	// Base64 secret: 666f6f206261722062757a7a
+}
+
+func ExampleSecret_Base64() {
+	Issuer := "Example.com"            // name of the service
+	AccountName := "alice@example.com" // name of the user
+
+	// Generate a new secret key with default options.
+	// Compatible with most TOTP authenticator apps.
+	key, err := totp.GenerateKey(Issuer, AccountName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Base64 encoded secret key is the same encoding used in the PEM data.
+	secBase64 := key.Secret.Base64()
+
+	pemData, err := key.PEM()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Chunk the base64 encoded secret key to 64 characters per line.
+	// Since the secret in PEM data is usually word-wrapped at 64 characters per
+	// line.
+	const lenSplit = 64
+
+	var lines []string
+
+	for index, char := range secBase64 {
+		if index%lenSplit == 0 {
+			lines = append(lines, "")
+		}
+
+		lines[len(lines)-1] += string(char)
+	}
+
+	// Check if the base64 encoded secret key is found in the PEM data.
+	for index, line := range lines {
+		if strings.Contains(pemData, line) {
+			fmt.Println(index+1, "Base64 encoded secret key is found in PEM data")
+		} else {
+			fmt.Println(pemData)
+			fmt.Println(secBase64)
+		}
 	}
 	//
 	// Output:
-	// Get as base62 encoded string: FegjEGvm7g03GQye
-	// Get as base32 encoded string: MZXW6IDCMFZCAYTVPJ5A
-	// String() is equivalent to Base32()
-	// Two secrets are the same.
+	// 1 Base64 encoded secret key is found in PEM data
+	// 2 Base64 encoded secret key is found in PEM data
+	// 3 Base64 encoded secret key is found in PEM data
 }
 
 // ============================================================================

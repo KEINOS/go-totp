@@ -103,14 +103,22 @@ pemKey, err := key.PEM()
 // This is equivalent to key.String().
 uriKey := key.URI()
 
+// Retrieve the secret value in various formats.
+// ---------------------------------------------
+
 // Get the secret value in Base32 format string.
-// This is equivalent to key.Secret.String().
+// This encoding is used in TOTP URI format and is equivalent to
+// key.Secret.String().
 base32Key := key.Secret.Base32()
 
 // Get the secret value in Base62 format string.
 base62Key := key.Secret.Base62()
 
-// Get the secret value in bytes.
+// Get the secret value in Base64 format string.
+// This encoding is used in PEM format.
+base64Key := key.Secret.Base64()
+
+// Get the secret value in bytes. This is the raw secret value.
 rawKey := key.Secret.Bytes()
 ```
 
