@@ -40,12 +40,12 @@ func Example_ecdh() {
 	// A consistent and common context between the two parties. It will be used
 	// as a salt-like value for the TOTP secret key derivation.
 	commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
-	// Common options for the TOTP secret key generation.
+	// Common options for the TOTP passcode generation.
 	commonOpts := totp.Options{
 		Algorithm:  totp.Algorithm("SHA512"), // Algorithm for passcode generation
 		Digits:     totp.DigitsEight,         // Number of digits for the passcode
 		Period:     60 * 30,                  // Interval of the passcode validity
-		SecretSize: 32,                       // Size of the secret key in bytes
+		SecretSize: 32,                       // Size of the TOTP secret key in bytes
 		Skew:       1,                        // Number of periods as tolerance (+/-)
 	}
 
@@ -69,8 +69,9 @@ func Example_ecdh() {
 		// TOTP secret key. A common and consistent context is required.
 		//
 		// The size of the shared ECDH secret is 32 bytes. The secret TOTP key
-		// is therefore derived from this shared secret using the KDF.DeriveKey()
-		// method to stretch up to the options.SecretSize.
+		// is therefore derived from this shared secret using the key derivation
+		// function (KDF) set in the options to stretch up to the options.SecretSize.
+		// The default KDF is BLAKE3.
 		totp.WithECDH(alicePriv, bobPub, commonCtx),
 		// Other options can be set as well. But they must be the same between
 		// the two parties.
