@@ -131,7 +131,8 @@ rawKey := key.Secret.Bytes()
 This package supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) key agreement protocol for the TOTP secret key generation (deriving TOTP secret from ECDH [shared secret](https://en.wikipedia.org/wiki/Shared_secret)).
 
 ```go
-// Pre-agreement between Alice and Bob.
+// Pre-agreement between Alice and Bob. commonCtx can be any string but consistent
+// between Alice and Bob.
 commonCurve := ecdh.X25519()
 commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
 
