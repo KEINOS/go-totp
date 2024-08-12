@@ -14,8 +14,10 @@
 ## Usage
 
 ```go
-// Install package
+// Install module
 go get "github.com/KEINOS/go-totp"
+// Use package
+import "github.com/KEINOS/go-totp/totp"
 ```
 
 ### Basic Usage
