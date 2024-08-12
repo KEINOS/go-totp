@@ -58,7 +58,7 @@ jobs:
       - name: Build Docker images if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          docker-compose build
+          docker compose build
 
       - name: Save/export built images to cache dir if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
@@ -68,6 +68,6 @@ jobs:
           docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp_latest_1.tar go-totp_latest:latest
 
       - name: Run tests on Go 1.22
-        run: docker-compose run v1_22
+        run: docker compose run v1_22
       - name: Run tests on latest Go
-        run: docker-compose run latest
+        run: docker compose run latest
