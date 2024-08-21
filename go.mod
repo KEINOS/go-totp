@@ -1,8 +1,6 @@
 module github.com/KEINOS/go-totp
 
-go 1.22.2
-
-toolchain go1.23.0
+go 1.22
 
 require (
 	github.com/boombuler/barcode v1.0.2

@@ -53,9 +53,9 @@ func TestOptionKDFDefault_invalid_length(t *testing.T) {
 
 		require.Error(t, err,
 			"requesting key with length 0 should return an error")
+		require.Contains(t, err.Error(), "output length too large",
+			"error message must contain the error reason")
 		require.Nil(t, newSecret,
 			"returned key must be nil on error")
-		require.Contains(t, err.Error(), "invalid output length",
-			"error message must contain the error reason")
 	})
 }

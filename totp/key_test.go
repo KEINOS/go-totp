@@ -4,6 +4,7 @@ import (
 	"crypto/ecdh"
 	"crypto/rand"
 	"encoding/pem"
+	"math"
 	"testing"
 	"time"
 
@@ -342,12 +343,17 @@ func TestKey_skew_as_one(t *testing.T) {
 	numValid := 0
 	numIterations := 10
 
+	if timeSleep > uint(math.MaxInt) {
+		t.Fatalf("output length too large: %d", timeSleep)
+	}
+
 	// If skew is set to 0, the validation fails 60-70% of the time.
 	for range numIterations {
 		passCode, err := key.PassCode()
 		require.NoError(t, err, "failed to generate passcode")
 
 		// Sleep to validate passcode with an almost last-minute deadline.
+		//nolint:gosec // timeSleep is checked above
 		time.Sleep(time.Second * time.Duration(timeSleep))
 
 		if ok := key.Validate(passCode); ok {

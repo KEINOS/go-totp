@@ -2,6 +2,7 @@ package totp
 
 import (
 	"crypto/ecdh"
+	"math"
 
 	"github.com/pkg/errors"
 	"github.com/zeebo/blake3"
@@ -19,6 +20,12 @@ const (
 // OptionKDFDefault is the default key derivation function (KDF) for TOTP secret
 // key derivation from ECDH shared secret. The underlying KDF is BLAKE3.
 func OptionKDFDefault(secret, ctx []byte, outLen uint) ([]byte, error) {
+	// Check if outLen is within the int range
+	if outLen > uint(math.MaxInt) {
+		return nil, errors.Errorf("output length too large: %d", outLen)
+	}
+
+	//nolint:gosec // outLen is checked above
 	out := int(outLen)
 	if out <= 0 {
 		return nil, errors.Errorf("invalid output length: %d", out)
