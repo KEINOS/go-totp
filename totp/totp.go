@@ -4,6 +4,16 @@ authentication functionality, a.k.a. `TOTP`, to the Go app.
 
 Optionally, it supports ECDH key agreement protocol to share the same secret key
 between two parties.
+
+```shellsession
+# Install the module
+go get github.com/KEINOS/go-totp
+```
+
+```go
+// Use the package
+import "github.com/KEINOS/go-totp/totp"
+```
 */
 package totp
 

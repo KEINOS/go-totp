@@ -11,15 +11,19 @@ import (
 //  Type: Algorithm
 // ----------------------------------------------------------------------------
 
-// Algorithm is a string that represents the algorithm used for HMAC.
+// Algorithm is a string that represents the algorithm used to generate the
+// passcode (for HMAC).
 type Algorithm string
 
 // ----------------------------------------------------------------------------
 //  Constructor
 // ----------------------------------------------------------------------------
 
-// NewAlgorithmStr creates a new Algorithm object from a string.
-// Choices of algo are: MD5, SHA1, SHA256 and SHA512.
+// NewAlgorithmStr creates a new Algorithm object from a string that is used to
+// generate the passcode.
+// Choices of algo are:
+//
+//	MD5, SHA1, SHA256 and SHA512.
 func NewAlgorithmStr(algo string) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"
@@ -39,6 +43,9 @@ func NewAlgorithmStr(algo string) (Algorithm, error) {
 }
 
 // NewAlgorithmID creates a new Algorithm object from an int.
+//
+// It is not an usual way to create an Algorithm object. It is used to convert
+// the ID of the algorithm to the Algorithm object for checking purposes.
 func NewAlgorithmID(algoID int) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"

@@ -16,6 +16,10 @@ import (
 //  Package Examples
 // ============================================================================
 
+// This example demonstrates how to generate a new secret key with default
+// options and validate the passcode.
+//
+// The generated key should be compatible with most TOTP authenticator apps.
 func Example() {
 	Issuer := "Example.com"            // name of the service
 	AccountName := "alice@example.com" // name of the user
@@ -54,12 +58,19 @@ func Example() {
 	// * Validation result: Passcode is valid
 }
 
+// This example demonstrates how to generate a new secret key with custom options
+// and validate the passcode.
+//
+// Since most TOTP authenticator apps are based on SHA1 hashing algorithm to
+// generate the passcode, this example is useful when you need to generate the
+// passcode with a stronger hash algorithm such as SHA256 and SHA512.
 func Example_custom() {
 	// Generate a new secret key with custom options
 	Issuer := "Example.com"
 	AccountName := "alice@example.com"
 
 	key, err := totp.GenerateKey(Issuer, AccountName,
+		// Algorithm choices are: MD5, SHA1, SHA256 and SHA512.
 		totp.WithAlgorithm(totp.Algorithm("SHA256")),
 		totp.WithPeriod(15),
 		totp.WithSecretSize(256),
@@ -121,7 +132,8 @@ func Example_advanced() {
 // ============================================================================
 
 func ExampleAlgorithm() {
-	// Create a new Algorithm object from a string. Choices are:
+	// Create a new Algorithm object from a string for passcode generation.
+	// Choices are:
 	//   MD5, SHA1, SHA256 and SHA512.
 	algo, err := totp.NewAlgorithmStr("SHA512")
 	if err != nil {
@@ -139,7 +151,7 @@ func ExampleAlgorithm() {
 }
 
 func ExampleAlgorithm_IsSupported() {
-	// Set unsupported algorithm
+	// Set unsupported algorithm for passcode generation
 	algo := totp.Algorithm("BLAKE3")
 
 	// Check if the algorithm is supported
