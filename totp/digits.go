@@ -25,8 +25,13 @@ const (
 //  Constructor
 // ----------------------------------------------------------------------------
 
-// NewDigitsInt returns a new Digits object from the given value.
+// NewDigitsInt returns a new Digits object from the given value. If the value
+// is less than zero, it will return DigitsSix.
 func NewDigitsInt(digits int) Digits {
+	if digits < 0 {
+		return DigitsSix
+	}
+
 	return Digits(uint(digits))
 }
 

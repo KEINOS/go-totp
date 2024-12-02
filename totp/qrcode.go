@@ -18,7 +18,7 @@ type QRCode struct {
 
 // Image returns an image.Image object of the QR code. Minimum width and height
 // is 49x49.
-func (q QRCode) Image(width, height int) (image.Image, error) {
+func (q *QRCode) Image(width, height int) (image.Image, error) {
 	uri := q.URI.String()
 
 	qrCode, err := qr.Encode(uri, qr.M, qr.Auto)

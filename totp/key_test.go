@@ -353,7 +353,6 @@ func TestKey_skew_as_one(t *testing.T) {
 		require.NoError(t, err, "failed to generate passcode")
 
 		// Sleep to validate passcode with an almost last-minute deadline.
-		//nolint:gosec // timeSleep is checked above
 		time.Sleep(time.Second * time.Duration(timeSleep))
 
 		if ok := key.Validate(passCode); ok {

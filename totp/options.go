@@ -25,7 +25,6 @@ func OptionKDFDefault(secret, ctx []byte, outLen uint) ([]byte, error) {
 		return nil, errors.Errorf("output length too large: %d", outLen)
 	}
 
-	//nolint:gosec // outLen is checked above
 	out := int(outLen)
 	if out <= 0 {
 		return nil, errors.Errorf("invalid output length: %d", out)

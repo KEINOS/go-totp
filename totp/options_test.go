@@ -9,7 +9,8 @@ import (
 func TestOptionKDFDefault_golden(t *testing.T) {
 	t.Parallel()
 
-	wantLen := 32
+	const wantLen int = 32
+
 	origSecret := []byte("secret")
 	ctx := []byte("context")
 	outLen := uint(wantLen)
@@ -48,6 +49,7 @@ func TestOptionKDFDefault_invalid_length(t *testing.T) {
 		t.Parallel()
 
 		negativeLen := (int)(-8)
+		//nolint:gosec // overflow conversion int -> uint is intentional
 		outLen := uint(negativeLen)
 		newSecret, err := OptionKDFDefault(origSecret, ctx, outLen)
 
