@@ -26,10 +26,10 @@ linters:
   #- varcheck
   #- deadcode
   #- structcheck
+  #- gomnd
+  #- execinquery
   #
   # Disable deprecated/abandoned linters
-  - gomnd
-  - execinquery
   - exportloopref
   # Disable due to mock private functions
   - testpackage
