@@ -5,11 +5,11 @@
 
 `go-totp` is a simple Go package to implement [Timebased-One-Time-Password](https://en.wikipedia.org/wiki/Time-based_one-time_password) authentication functionality, a.k.a. `TOTP`, to the Go app.
 
+As an optional feature, this package __supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) (Elliptic-Curve Diffie-Hellman) key agreement protocol__, where public keys are exchanged between two parties to obtain a common TOTP passcode.
+
 - [Compatible Authenticator apps](https://github.com/KEINOS/go-totp/wiki/List-of-compatibility) | Wiki @ GitHub
 
 > __Note__: This is a wrapper of the awesome [`github.com/pquerna/otp`](https://github.com/pquerna/otp) package to facilitate the use of TOTP.
->
-> As an optional feature, this package __supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) (Elliptic-Curve Diffie-Hellman) key agreement protocol__, where public keys are exchanged between two parties to obtain a common TOTP passcode.
 
 ## Usage
 
