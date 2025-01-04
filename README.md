@@ -86,9 +86,6 @@ key, err := totp.GenerateKey(Issuer, AccountName,
 // ----------------------------------------------------------------------------
 
 // Generate the current passcode.
-//
-// Which is a string of 8 digit numbers and valid for with 5 skews as set in
-// the above options (5 skew = time tolerance of ± 15 seconds(period) * 5).
 passcode, err := key.PassCode()
 
 // Validate the received passcode.
