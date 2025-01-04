@@ -67,10 +67,13 @@ func Example() {
 - [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
 ```go
+//  * You should handle the error in your code.
+
 // ----------------------------------------------------------------------------
 //  Generate a new secret key with custom options
 // ----------------------------------------------------------------------------
 key, err := totp.GenerateKey(Issuer, AccountName,
+    // Optional:
     totp.WithAlgorithm(totp.Algorithm("SHA256")),
     totp.WithPeriod(15),
     totp.WithSecretSize(256),
@@ -81,7 +84,6 @@ key, err := totp.GenerateKey(Issuer, AccountName,
 // ----------------------------------------------------------------------------
 //  Major methods of totp.Key object
 // ----------------------------------------------------------------------------
-//  * You should handle the error in your code.
 
 // Generate the current passcode.
 //
@@ -92,10 +94,16 @@ passcode, err := key.PassCode()
 // Validate the received passcode.
 ok := key.Validate(passcode)
 
-// Get 100x100 px image of QR code as PNG byte data.
-//
-// FixLevelDefault is the 15% of error correction.
+// Get the image object of QR code with the given fix level.
+// Fix level choices are:
+//   FixLevel30 = H // 30% error correction
+//   FixLevel25 = Q // 25%
+//   FixLevel15 = M // 15%
+//   FixLevel7  = L // 7%
+//   FixLevelDefault = FixLevel15
 qrCodeObj, err := key.QRCode(totp.FixLevelDefault)
+
+// Get 100x100 px image of QR code as PNG byte data.
 pngBytes, err := qrCodeObj.PNG(100, 100)
 
 // Get the secret key in PEM format text.
