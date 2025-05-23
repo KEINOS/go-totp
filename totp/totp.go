@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -66,6 +67,7 @@ func ValidateCustom(passcode, secret string, validationTime time.Time, options O
 			Skew:      options.Skew,
 			Digits:    options.Digits.OTPDigits(),
 			Algorithm: options.Algorithm.OTPAlgorithm(),
+			Encoder:   otp.EncoderDefault,
 		},
 	)
 

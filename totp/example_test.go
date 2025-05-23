@@ -1,4 +1,6 @@
-//nolint:gosec // potentially hardcoded credentials for testing
+// allow potentially hardcoded credentials for testing and occurrences for readability
+//
+//nolint:gosec,goconst
 package totp_test
 
 import (
@@ -510,7 +512,6 @@ func ExampleKey_PEM() {
 	// -----END TOTP SECRET KEY-----
 }
 
-//nolint:funlen // length is 62 lines long but leave it as is due to embedded example.
 func ExampleKey_QRCode() {
 	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
 		"digits=6&issuer=Example.com&period=30&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
@@ -672,7 +673,7 @@ func ExampleNewSecretBytes() {
 
 	fmt.Printf("Type: %T\n", secret)
 	fmt.Printf("Value: %#v\n", secret)
-	fmt.Println("Secret bytes:", secret.Bytes())
+	fmt.Printf("Secret bytes: %#x\n", secret.Bytes())
 	fmt.Println("Secret string:", secret.String())
 	fmt.Println("Secret Base32:", secret.Base32())
 	fmt.Println("Secret Base62:", secret.Base62())
@@ -681,7 +682,7 @@ func ExampleNewSecretBytes() {
 	// Output:
 	// Type: totp.Secret
 	// Value: totp.Secret{0x73, 0x6f, 0x6d, 0x65, 0x20, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74}
-	// Secret bytes: [115 111 109 101 32 115 101 99 114 101 116]
+	// Secret bytes: 0x736f6d6520736563726574
 	// Secret string: ONXW2ZJAONSWG4TFOQ
 	// Secret Base32: ONXW2ZJAONSWG4TFOQ
 	// Secret Base62: bfF9D3ygDyVQZp2

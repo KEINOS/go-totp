@@ -25,8 +25,6 @@ import (
 // keys securely with no-man-in-the-middle attack.
 //
 // Let's see how Alice generates a common TOTP passcode between her and Bob!
-//
-//nolint:exhaustruct,funlen // allow them for readability
 func Example_ecdh() {
 	// ------------------------------------------------------------------------
 	//  Pre-agreement between Alice and Bob.
@@ -42,11 +40,13 @@ func Example_ecdh() {
 	commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
 	// Common options for the TOTP passcode generation.
 	commonOpts := totp.Options{
-		Algorithm:  totp.Algorithm("SHA512"), // Algorithm for passcode generation
-		Digits:     totp.DigitsEight,         // Number of digits for the passcode
-		Period:     60 * 30,                  // Interval of the passcode validity
-		SecretSize: 32,                       // Size of the TOTP secret key in bytes
-		Skew:       1,                        // Number of periods as tolerance (+/-)
+		AccountName: "",                       // Name of the user. Empty due to be overridden
+		Issuer:      "",                       // Name of the service. Empty due to be overridden
+		Algorithm:   totp.Algorithm("SHA512"), // Algorithm for passcode generation
+		Digits:      totp.DigitsEight,         // Number of digits for the passcode
+		Period:      60 * 30,                  // Interval of the passcode validity
+		SecretSize:  32,                       // Size of the TOTP secret key in bytes
+		Skew:        1,                        // Number of periods as tolerance (+/-)
 	}
 
 	// ------------------------------------------------------------------------

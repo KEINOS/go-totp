@@ -1,37 +1,37 @@
+version: "2"
+
 run:
+  # Include test files.
   tests: true
+
+  # List of build tags, all linters use it. Default is empty list.
   build-tags:
     - golangci
+
+  # Allow multiple parallel golangci-lint instances running.
   allow-parallel-runners: true
 
-issues:
-  exclude-dirs:
-    - .github
-    - .vscode
-
-output:
-  sort-results: true
-
+# Enabled all linters. Conf settings may follow.
 linters:
-  enable-all: true
+  # Which dirs to skip. Issues from them won't be reported.
+  exclusions:
+    paths:
+      - .github
+  default: all
+
   disable:
-  # Remobe deprecated and deactivated linters
-  #- golint
-  #- interfacer
-  #- ifshort
-  #- scopelint
-  #- exhaustivestruct
-  #- maligned
-  #- nosnakecase
-  #- varcheck
-  #- deadcode
-  #- structcheck
-  #- gomnd
-  #- execinquery
+  # ---------------------------------------------------------------------------
+  # Remove deactivated linters
+  # ---------------------------------------------------------------------------
   #
+  # ---------------------------------------------------------------------------
   # Disable deprecated/abandoned linters
-  - exportloopref
-  # Disable due to mock private functions
+  # ---------------------------------------------------------------------------
+  #
+  # ---------------------------------------------------------------------------
+  # Disabled linters with reasons
+  # ---------------------------------------------------------------------------
+  # Disabled because of testing private functions
   - testpackage
-  # Disable due to external dependencies
+  # Disabled beacuse of external package usage
   - depguard

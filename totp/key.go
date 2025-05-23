@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
@@ -207,6 +208,7 @@ func (k *Key) PassCode() (string, error) {
 			Skew:      k.Options.Skew,
 			Digits:    k.Options.Digits.OTPDigits(),
 			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
+			Encoder:   otp.EncoderDefault,
 		},
 	)
 }
@@ -223,6 +225,7 @@ func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
 			Skew:      k.Options.Skew,
 			Digits:    k.Options.Digits.OTPDigits(),
 			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
+			Encoder:   otp.EncoderDefault,
 		},
 	)
 }
