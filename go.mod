@@ -3,7 +3,7 @@ module github.com/KEINOS/go-totp
 go 1.22
 
 require (
-	github.com/boombuler/barcode v1.0.2
+	github.com/boombuler/barcode v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.10.0
