@@ -73,6 +73,7 @@ func TestQRCode_PNG_fail_encoding(t *testing.T) {
 
 	// Backup and defer restore
 	oldPNGEncode := pngEncode
+
 	defer func() {
 		pngEncode = oldPNGEncode
 	}()
@@ -130,7 +131,8 @@ func genPNG(t *testing.T, uri string, width, height int) []byte {
 
 	var buf bytes.Buffer
 
-	if err := png.Encode(&buf, qrCode); err != nil {
+	err = png.Encode(&buf, qrCode)
+	if err != nil {
 		t.Fatal(err)
 	}
 

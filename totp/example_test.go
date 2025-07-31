@@ -866,7 +866,8 @@ func ExampleURI() {
 	uri := totp.URI(origin)
 
 	// Check if the URI is correctly formatted with the required fields.
-	if err := uri.Check(); err != nil {
+	err := uri.Check()
+	if err != nil {
 		log.Fatal(err)
 	}
 

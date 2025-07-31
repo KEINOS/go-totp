@@ -86,10 +86,9 @@ func TestURI_malformed_uri(t *testing.T) {
 
 	// Create a malformed URI which includes control characters
 	const CTL = rune(0x7f)
-	badURI := "this is a bad URI" + string(CTL)
 
-	// Create URI object
-	uri := URI(badURI)
+	badURI := "this is a bad URI" + string(CTL) // Add a control character to make it malformed
+	uri := URI(badURI)                          // Create URI object
 
 	// Check should be error
 	err := uri.Check()

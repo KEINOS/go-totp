@@ -115,7 +115,8 @@ func (u URI) Digits() uint {
 	base10 := 10
 	bitSize := 64
 
-	if digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize); err == nil {
+	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize)
+	if err == nil {
 		return uint(digitUint64)
 	}
 
@@ -198,7 +199,8 @@ func (u URI) Period() uint {
 	base10 := 10
 	bitSize := 64
 
-	if periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize); err == nil {
+	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize)
+	if err == nil {
 		return uint(periodUint64)
 	}
 

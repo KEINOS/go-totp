@@ -44,7 +44,8 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 
 	// Apply custom options.
 	for _, fn := range opts {
-		if err := fn(optsCustom); err != nil {
+		err := fn(optsCustom)
+		if err != nil {
 			return nil, errors.Wrap(err, "failed to apply custom options")
 		}
 	}
@@ -165,7 +166,8 @@ func GenerateKeyURI(uri string) (*Key, error) {
 func GenKeyFromURI(uri string) (*Key, error) {
 	objURI := URI(uri)
 
-	if err := objURI.Check(); err != nil {
+	err := objURI.Check()
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to create URI object from the given URI")
 	}
 

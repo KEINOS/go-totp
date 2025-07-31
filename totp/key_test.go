@@ -119,6 +119,7 @@ func TestGenerateKeyCustom_curve_mismatch(t *testing.T) {
 func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 	// Backup and defer restore
 	oldTotpGenerate := totpGenerate
+
 	defer func() {
 		totpGenerate = oldTotpGenerate
 	}()
@@ -264,6 +265,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 
 	// Backup and defer restore
 	oldTotpGenerate := totpGenerate
+
 	defer func() {
 		totpGenerate = oldTotpGenerate
 	}()
@@ -306,6 +308,7 @@ func TestKey_QRCode_bad_fix_level(t *testing.T) {
 func TestKey_PEM(t *testing.T) {
 	// Backup and defer restore
 	oldPemEncodeToMemory := pemEncodeToMemory
+
 	defer func() {
 		pemEncodeToMemory = oldPemEncodeToMemory
 	}()

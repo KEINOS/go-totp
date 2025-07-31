@@ -70,7 +70,6 @@ func ValidateCustom(passcode, secret string, validationTime time.Time, options O
 			Encoder:   otp.EncoderDefault,
 		},
 	)
-
 	if !isValid || err != nil {
 		return false
 	}

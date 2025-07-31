@@ -51,7 +51,8 @@ func (q *QRCode) PNG(width, height int) ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	if err := pngEncode(&buf, img); err != nil {
+	err = pngEncode(&buf, img)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to encode QR code image to PNG")
 	}
 
