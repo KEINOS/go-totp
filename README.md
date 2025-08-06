@@ -144,9 +144,19 @@ This package supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie
 commonCurve := ecdh.X25519()
 commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
 
+// ECDH Key pair generator. Do not expose the private key.
+func newECDHKeys(paramCommon ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
+	priv, err := paramCommon.GenerateKey(rand.Reader)
+	if err != nil {
+		log.Fatal(err, "failed to generate Alice's ECDH private key for example")
+	}
+
+	return priv, priv.PublicKey()
+}
+
 // Key exchange between Alice and Bob.
-alicePriv, alicePub := getECDHKeysSomeHowForAlice(commonCurve)
-bobPriv, bobPub := getECDHKeysSomeHowForBob(commonCurve)
+alicePriv, alicePub := newECDHKeys(commonCurve)
+bobPriv, bobPub := newECDHKeys(commonCurve)
 
 // Generate a new TOTP key for Alice using:
 // - Alice's ECDH private key
@@ -169,7 +179,7 @@ if err != nil {
 }
 ```
 
-- [View the full ECDH example](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#example-package-ecdh) with detailed comments | GoDoc @ pkg.go.dev
+- [View the full ECDH example with detailed comments](https://pkg.go.dev/github.com/KEINOS/go-totp/totp#example-package-ecdh) | GoDoc @ pkg.go.dev
 
 A shared secret key can be created by exchanging a public ECDH key between two parties. This shared secret key is used to derive the TOTP key. Thus the same TOTP passcode can be shared within the same time period.
 
