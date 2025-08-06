@@ -13,9 +13,12 @@ As an optional feature, this package __supports [ECDH](https://en.wikipedia.org/
 
 ## Usage
 
+```shellsession
+$ # Install module
+$ go get "github.com/KEINOS/go-totp"
+```
+
 ```go
-// Install module
-go get "github.com/KEINOS/go-totp"
 // Use package
 import "github.com/KEINOS/go-totp/totp"
 ```
