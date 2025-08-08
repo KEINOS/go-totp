@@ -126,9 +126,13 @@ func WithSecretSize(size uint) Option {
 	}
 }
 
+// WithSecretQueryFirst sets whether the secret should be the first query parameter in the URI.
+// When true (default), secret appears first: "?secret=...&algorithm=...".
+// When false, parameters are sorted alphabetically: "?algorithm=...&secret=...".
 func WithSecretQueryFirst(choice bool) Option {
 	return func(opts *Options) error {
 		opts.prependSecretInURI = choice
+
 		return nil
 	}
 }

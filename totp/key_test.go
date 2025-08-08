@@ -375,67 +375,81 @@ func TestKey_skew_as_one(t *testing.T) {
 
 // Issue #55.
 // If `WithSecretQueryFirst` option is used, the secret should be prepended to the URI.
-func TestKey_prepend_secret_with_query_first(t *testing.T) {
+
+const testURIForSecretQueryFirst = "otpauth://totp/domain.com:test_tail@domain.com?" +
+	"digits=8&algorithm=SHA256&period=45&issuer=domain.com&" +
+	"secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X"
+
+// TestKey_secret_query_first_default tests the default behavior when WithSecretQueryFirst is unset.
+func TestKey_secret_query_first_default(t *testing.T) {
 	t.Parallel()
 
-	const input = "otpauth://totp/domain.com:test_tail@domain.com?digits=8&algorithm=SHA256&period=45&issuer=domain.com&secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X"
+	totpURI := URI(testURIForSecretQueryFirst)
 
-	t.Run("WithSecretQueryFirst unset (default)", func(t *testing.T) {
-		totpURI := URI(input) // Parse the input URI
+	tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
+		WithAlgorithm(Algorithm(totpURI.Algorithm())),
+		WithDigits(Digits(totpURI.Digits())),
+		WithPeriod(totpURI.Period()),
+	)
+	require.NoError(t, err, "failed to generate key from test URI")
 
-		tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
-			WithAlgorithm(Algorithm(totpURI.Algorithm())),
-			WithDigits(Digits(totpURI.Digits())),
-			WithPeriod(totpURI.Period()),
-		)
-		require.NoError(t, err, "failed to generate key from test URI")
+	tmpKey.Secret = totpURI.Secret()
 
-		tmpKey.Secret = totpURI.Secret() // Overwrite secret with the one from the URI
+	expect := "otpauth://totp/domain.com:test_tail@domain.com?" +
+		"secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X&" +
+		"algorithm=SHA256&digits=8&issuer=domain.com&period=45"
+	actual := tmpKey.URI()
 
-		expect := "otpauth://totp/domain.com:test_tail@domain.com?secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X&algorithm=SHA256&digits=8&issuer=domain.com&period=45"
-		actual := tmpKey.URI()
+	require.Equal(t, expect, actual,
+		"URI should match the expected format with secret first")
+}
 
-		require.Equal(t, expect, actual,
-			"URI should match the input URI")
-	})
+// TestKey_secret_query_first_true tests WithSecretQueryFirst set to true.
+func TestKey_secret_query_first_true(t *testing.T) {
+	t.Parallel()
 
-	t.Run("WithSecretQueryFirst true (default)", func(t *testing.T) {
-		totpURI := URI(input)
+	totpURI := URI(testURIForSecretQueryFirst)
 
-		tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
-			WithAlgorithm(Algorithm(totpURI.Algorithm())),
-			WithDigits(Digits(totpURI.Digits())),
-			WithPeriod(totpURI.Period()),
-			WithSecretQueryFirst(true), // Use the option to prepend secret in URI
-		)
-		require.NoError(t, err, "failed to generate key from test URI")
+	tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
+		WithAlgorithm(Algorithm(totpURI.Algorithm())),
+		WithDigits(Digits(totpURI.Digits())),
+		WithPeriod(totpURI.Period()),
+		WithSecretQueryFirst(true),
+	)
+	require.NoError(t, err, "failed to generate key from test URI")
 
-		tmpKey.Secret = totpURI.Secret()
+	tmpKey.Secret = totpURI.Secret()
 
-		expect := "otpauth://totp/domain.com:test_tail@domain.com?secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X&algorithm=SHA256&digits=8&issuer=domain.com&period=45"
-		actual := tmpKey.URI()
+	expect := "otpauth://totp/domain.com:test_tail@domain.com?" +
+		"secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X&" +
+		"algorithm=SHA256&digits=8&issuer=domain.com&period=45"
+	actual := tmpKey.URI()
 
-		require.Equal(t, expect, actual,
-			"URI should match the input URI")
-	})
+	require.Equal(t, expect, actual,
+		"URI should match the expected format with secret first")
+}
 
-	t.Run("WithSecretQueryFirst false (user choice)", func(t *testing.T) {
-		totpURI := URI(input)
+// TestKey_secret_query_first_false tests WithSecretQueryFirst set to false (alphabetical sorting).
+func TestKey_secret_query_first_false(t *testing.T) {
+	t.Parallel()
 
-		tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
-			WithAlgorithm(Algorithm(totpURI.Algorithm())),
-			WithDigits(Digits(totpURI.Digits())),
-			WithPeriod(totpURI.Period()),
-			WithSecretQueryFirst(false), // sort the query alphabetically
-		)
-		require.NoError(t, err, "failed to generate key from test URI")
+	totpURI := URI(testURIForSecretQueryFirst)
 
-		tmpKey.Secret = totpURI.Secret()
+	tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
+		WithAlgorithm(Algorithm(totpURI.Algorithm())),
+		WithDigits(Digits(totpURI.Digits())),
+		WithPeriod(totpURI.Period()),
+		WithSecretQueryFirst(false),
+	)
+	require.NoError(t, err, "failed to generate key from test URI")
 
-		expect := "otpauth://totp/domain.com:test_tail@domain.com?algorithm=SHA256&digits=8&issuer=domain.com&period=45&secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X"
-		actual := tmpKey.URI()
+	tmpKey.Secret = totpURI.Secret()
 
-		require.Equal(t, expect, actual,
-			"URI should match the input URI")
-	})
+	expect := "otpauth://totp/domain.com:test_tail@domain.com?" +
+		"algorithm=SHA256&digits=8&issuer=domain.com&period=45&" +
+		"secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X"
+	actual := tmpKey.URI()
+
+	require.Equal(t, expect, actual,
+		"URI should match the expected format with alphabetical query order")
 }

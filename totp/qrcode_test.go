@@ -237,22 +237,22 @@ func TestQRCode_Validation_DifferentFixLevels(t *testing.T) {
 	fixLevels := []FixLevel{FixLevel7, FixLevel15, FixLevel25, FixLevel30}
 	fixLevelNames := []string{"FixLevel7", "FixLevel15", "FixLevel25", "FixLevel30"}
 
-	for i, level := range fixLevels {
-		t.Run(fixLevelNames[i], func(t *testing.T) {
+	for index, level := range fixLevels {
+		t.Run(fixLevelNames[index], func(t *testing.T) {
 			t.Parallel()
 
 			qrCode, err := key.QRCode(level)
 			require.NoError(t, err,
-				"failed to generate QR code with %s", fixLevelNames[i])
+				"failed to generate QR code with %s", fixLevelNames[index])
 
 			pngImg, err := qrCode.PNG(200, 200)
 			require.NoError(t, err,
-				"failed to generate PNG with %s", fixLevelNames[i])
+				"failed to generate PNG with %s", fixLevelNames[index])
 
 			// Validate the QR code is readable
 			decodedURI := decodeQRCodeWithGozxing(t, pngImg)
 			require.Equal(t, key.URI(), decodedURI,
-				"decoded URI should match original with %s", fixLevelNames[i])
+				"decoded URI should match original with %s", fixLevelNames[index])
 		})
 	}
 }
@@ -345,17 +345,19 @@ func decodeQRCodeWithGozxing(t *testing.T, pngData []byte) string {
 	}
 
 	var lastErr error
-	for i, hints := range hintConfigs {
+
+	for attempt, hints := range hintConfigs {
 		result, err := reader.Decode(bitmap, hints)
 		if err == nil && result != nil && result.GetText() != "" {
 			// Success! Return the decoded text
 			return result.GetText()
 		}
+
 		lastErr = err
 
 		// Log attempt for debugging (only in verbose mode)
 		if testing.Verbose() {
-			t.Logf("Decode attempt %d failed: %v", i+1, err)
+			t.Logf("Decode attempt %d failed: %v", attempt+1, err)
 		}
 	}
 
