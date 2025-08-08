@@ -45,14 +45,14 @@ jobs:
       - name: Load cached Docker images if any
         if: steps.cache.outputs.cache-hit == 'true'
         run: |
-          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-v1_22_1.tar
+          docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-min_1.tar
           docker load --input ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-latest_1.tar
 
       - name: Pull base images if no-cache
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           : # Pull images one-by-one for stability
-          docker pull golang:1.22-alpine
+          docker pull golang:1.23-alpine
           docker pull golang:alpine
 
       - name: Build Docker images if no-cache
@@ -64,10 +64,11 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}
-          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-v1_22_1.tar go-totp-v1_22:latest
+          docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-min_1.tar go-totp-min:latest
           docker save --output ${{ env.PATH_CACHE }}/${{ steps.imagetag.outputs.hash }}/go-totp-latest_1.tar go-totp-latest:latest
 
-      - name: Run tests on Go 1.22
-        run: docker compose run v1_22
+      - name: Run tests on minimum supported Go version
+        run: docker compose run min
+
       - name: Run tests on latest Go
         run: docker compose run latest
