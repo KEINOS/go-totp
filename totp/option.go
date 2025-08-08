@@ -126,9 +126,9 @@ func WithSecretSize(size uint) Option {
 	}
 }
 
-func WithSecretQueryFirst() Option {
+func WithSecretQueryFirst(choice bool) Option {
 	return func(opts *Options) error {
-		opts.prependSecretInURI = true
+		opts.prependSecretInURI = choice
 		return nil
 	}
 }

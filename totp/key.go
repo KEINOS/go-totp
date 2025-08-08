@@ -4,6 +4,7 @@ import (
 	"encoding/pem"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -287,8 +288,14 @@ func (k *Key) URI() string {
 	queryVal.Set("issuer", k.Options.Issuer)
 	queryVal.Set("algorithm", k.Options.Algorithm.String())
 	queryVal.Set("digits", k.Options.Digits.String())
-	queryVal.Set("secret", k.Secret.Base32())
 	queryVal.Set("period", strconv.FormatUint(uint64(k.Options.Period), 10))
+
+	// fix #55 always prepend secret in URI unless the option is set to false
+	if k.Options.prependSecretInURI {
+		queryVal.Set("_secret", k.Secret.Base32()) // bring secret to the front
+	} else {
+		queryVal.Set("secret", k.Secret.Base32())
+	}
 
 	//nolint:exhaustruct // other fields are left blank on purpose
 	urlOut := url.URL{
@@ -298,7 +305,13 @@ func (k *Key) URI() string {
 		RawQuery: queryVal.Encode(),
 	}
 
-	return urlOut.String()
+	uri := urlOut.String()
+
+	if k.Options.prependSecretInURI {
+		uri = strings.Replace(uri, "_secret", "secret", 1)
+	}
+
+	return uri
 }
 
 // Validate returns true if the given passcode is valid for the current time.
