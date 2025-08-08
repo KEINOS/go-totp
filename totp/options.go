@@ -10,11 +10,12 @@ import (
 
 // Constants for the default values of the options.
 const (
-	OptionAlgorithmDefault  = Algorithm("SHA1") // Google Authenticator does not work other than SHA1.
-	OptionDigitsDefault     = Digits(6)         // Google Authenticator does not work other than 6 digits.
-	OptionPeriodDefault     = uint(30)          // 30 seconds is recommended in RFC-6238.
-	OptionSecretSizeDefault = uint(128)         // 128 Bytes.
-	OptionSkewDefault       = uint(1)           // ± 1 period of tolerance.
+	OptionAlgorithmDefault          = Algorithm("SHA1") // Google Authenticator does not work other than SHA1.
+	OptionDigitsDefault             = Digits(6)         // Google Authenticator does not work other than 6 digits.
+	OptionPeriodDefault             = uint(30)          // 30 seconds is recommended in RFC-6238.
+	OptionSecretSizeDefault         = uint(128)         // 128 Bytes.
+	OptionSkewDefault               = uint(1)           // ± 1 period of tolerance.
+	OptionPrependSecretInURIDefault = true              // Force the "secret" element to be the first query string.
 )
 
 // OptionKDFDefault is the default key derivation function (KDF) for TOTP secret
@@ -75,6 +76,9 @@ type Options struct {
 	// Period is the number of seconds a TOTP hash is valid for.
 	// (Default: 30 seconds)
 	Period uint
+	// If true, the "secret" element will be at the beginning of the query
+	// string in the URI. If false, query are sorted alphabetically.
+	prependSecretInURI bool
 	// SecretSize is the size of the generated Secret. (Default: 128 bytes)
 	SecretSize uint
 	// Skew is the periods before or after the current time to allow. (Default: 1)
@@ -121,6 +125,9 @@ func (opts *Options) SetDefault() {
 	if opts.Period == 0 {
 		opts.Period = OptionPeriodDefault
 	}
+
+	// Fix #55
+	opts.prependSecretInURI = OptionPrependSecretInURIDefault
 
 	if opts.SecretSize == 0 {
 		opts.SecretSize = OptionSecretSizeDefault

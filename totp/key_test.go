@@ -252,9 +252,12 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 }
 
 // ----------------------------------------------------------------------------
-//  GenerateKeyURI()
+//  GenerateKeyURI() / GenKeyFromURI()
 // ----------------------------------------------------------------------------
 
+// GenerateKeyURI is deprecated, but since it uses GenKeyFromURI under the hood,
+// we test it here both at the same time.
+//
 //nolint:paralleltest // disable parallel test due to monkey patching during test
 func TestGenerateKeyURI_error_msg(t *testing.T) {
 	key1, err := GenerateKeyURI("")
@@ -368,4 +371,30 @@ func TestKey_skew_as_one(t *testing.T) {
 
 	require.Equal(t, expect, actual,
 		"not all generated passcodes are valid")
+}
+
+// Issue #55.
+// If `WithSecretQueryFirst` option is used, the secret should be prepended to the URI.
+func TestKey_prepend_secret_with_query_first(t *testing.T) {
+	t.Parallel()
+
+	const input = "otpauth://totp/domain.com:test_tail@domain.com?algorithm=SHA256&digits=8&issuer=domain.com&period=45&secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X"
+
+	totpURI := URI(input) // Parse the input URI
+
+	tmpKey, err := GenerateKey(totpURI.Issuer(), totpURI.AccountName(),
+		WithAlgorithm(Algorithm(totpURI.Algorithm())),
+		WithDigits(Digits(totpURI.Digits())),
+		WithPeriod(totpURI.Period()),
+		WithSecretQueryFirst(), // Use the option to prepend secret in URI
+	)
+	require.NoError(t, err, "failed to generate key from test URI")
+
+	tmpKey.Secret = totpURI.Secret() // Overwrite secret with the one from the URI
+
+	expect := "otpauth://totp/domain.com:test_tail@domain.com?secret=DEOXGYTNWD3D6J3RNBEGCI2R45X3XO3X&algorithm=SHA256&digits=8&issuer=domain.com&period=45"
+	actual := tmpKey.URI()
+
+	require.Equal(t, expect, actual,
+		"URI should match the input URI")
 }

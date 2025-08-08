@@ -126,6 +126,13 @@ func WithSecretSize(size uint) Option {
 	}
 }
 
+func WithSecretQueryFirst() Option {
+	return func(opts *Options) error {
+		opts.prependSecretInURI = true
+		return nil
+	}
+}
+
 // WithSkew sets the periods before or after the current time to allow.
 //
 // Value of 1 allows up to Period of either side of the specified time.
