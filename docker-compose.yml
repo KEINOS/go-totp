@@ -119,13 +119,13 @@ services:
   #     - .:/workspaces
   #     - GO_PKG_MOD:/go/pkg/mod
 
-  # Service v1_22 is the minimum version we support
-  v1_22:
+  # Service min is the minimum version we support
+  min:
     build:
       context: .
       dockerfile: ./.github/Dockerfile
       args:
-        VARIANT: 1.22-alpine
+        VARIANT: 1.23-alpine
     volumes:
       - .:/workspaces
       - GO_PKG_MOD:/go/pkg/mod
