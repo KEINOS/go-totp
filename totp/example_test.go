@@ -180,19 +180,25 @@ func ExampleDigits() {
 
 	// DigitsEight is equivalent to NewDigits(8)
 	if totp.DigitsEight == totp.NewDigitsInt(8) {
-		fmt.Println("Digit 8", "OK")
+		fmt.Println("Digit 8:", "OK")
 	}
 
 	// DigitsSix is equivalent to NewDigits(6)
 	if totp.DigitsSix == totp.NewDigitsInt(6) {
-		fmt.Println("Digit 6", "OK")
+		fmt.Println("Digit 6:", "OK")
+	}
+
+	// Negative input will enforce the default value of 6 digits.
+	if totp.DigitsSix == totp.NewDigitsInt(-1) {
+		fmt.Println("Negative input is enforced to 6 digits:", "OK")
 	}
 	//
 	// Output:
 	// Digits: 8
 	// Digits ID: 8
-	// Digit 8 OK
-	// Digit 6 OK
+	// Digit 8: OK
+	// Digit 6: OK
+	// Negative input is enforced to 6 digits: OK
 }
 
 // ============================================================================
@@ -536,38 +542,8 @@ func ExampleKey_QRCode() {
 
 	actual := hex.EncodeToString(pngImage)
 	expect := `89504e470d0a1a0a0000000d4948445200000064000000641000000000051` +
-		`916cb0000040549444154789ce45ced6edb400c9387bcff2b67180a2f324d5272ff` +
-		`95d59f35f7691f4f12a9047bbddf1561afaae3d0dde76bf631bdeddfdffd5f370fd` +
-		`7c5f99b7df473fef1eff973ecf5f50fbb60ec74b01dfbce93eba7cce6633fae778e` +
-		`617dfc39d310a90101e503bdbff7f55357779ba1727e763ec69f231191c9f094ce1` +
-		`3c5c88363b17f4217db7709e23722c20c917077daa1721aa2be4fd789886cdebe9f` +
-		`6e3796a927b4703f8c722ad7f0e74c43c4f198d3d489bb2c5dc28fa6f90a19fd9c4` +
-		`9883c21f2d33d7ec68fb83994b4c52072bcdf8e1339edd1e76c4f7d42df4536bf5e` +
-		`1a2235a8b6291f4c116c52932c32b13d35a28988d4a033f054a6d355e3e5a318e49` +
-		`53f7eda9210f9ffa7f095d3143762f3a7317d4d75f2ac4d71b83c443668a87c33f1` +
-		`afefa08aa67ceef339061150882ebef77665937e983489da57a1f1b12444b675277` +
-		`7f771ceac1f7ccd6bc316aef5b32444746cf6a75ea6eac1906111ab4424ab07dc2f` +
-		`2f6a3da9064eda5ef988d335389fadc9d6ba5a0c22c7f5fd9c9ea8413b383e44b71` +
-		`e1057be837d79510b4dc56f15a9b67fe33ab8966b57d59bcffa31881085e878ce94` +
-		`6f9efa85426ce387578b41c47c3fc232b8d21e7d8eb29e5f7a5b01b25b34aee8262` +
-		`1a2388dd3112ab239a5c8d639cd2947e74b15f93dfbe6edcb54fe948a448ec4d6c1` +
-		`f570bee263773f4942a408b364a7dfc74cd590d3b61a67529fb8ce7dbf2444d4292` +
-		`8fea3fa3677ba067ee5f290afac2421b2b9df657247895f3738fec5c6d7c0a7fc33` +
-		`2621c24cc575e507cecfd867c59291b7b95ac115bd34442625876dea2ebb0c8fa7e` +
-		`b7899aa9c689f4a4264d20865eeee5431615ac5b16336cead9b19b55cd564527c4e` +
-		`6fa87bddc72aff62151b857a586637954616955c1564f22d77baca7fdc3e95f93df` +
-		`be02365f4b33aedd354b545b5b1bdd83adc921029f1d6ea2ebbaa8932a5f19d8264` +
-		`63b5928d4184fc824e2941759fb7999d459f890de33e257d2c0691d7acbd550c67a` +
-		`69800e366ee84fbbc69cf2f4b42a408ffaf21533b1dcea2df661eeea9d6e53e1983` +
-		`c8717f371769b0ed0903c6cf133a684abf87b15f52fb75bc0bc73afdcdc697d1e3b` +
-		`8a68aa01c993444ca5416ddbd76f7d621d7f798b4067e663e1c94d9e157a6b560a4` +
-		`45eeaa53747d5d954fb62c5a5b1222b31edee9f05a565ea63536ebe0b83c1fb1430` +
-		`ca3ddf84e5fc75544702fa791ea7653621059fc9f0f4f3484e24f8a2594f9b6d865` +
-		`f5fbb82444eac1f77c5d13e058cf4e791f8e719ccd7b731a22356873773fd538869` +
-		`ccb190e15c5bb2a568f4ca62257b72d3b9ea2e471785fc1bd33a3d664131a38ae8c` +
-		`26a9bafb113b75c584d197c27ca4d57e6f5ddfc80d6abc9a37712dd6c77d330d116` +
-		`51839d4bd773ae3b29dc8d893f6708ab2b2aaf10b3df233ec6f000000ffffa0404e` +
-		`fb1e0ab59a0000000049454e44ae426082`
+		`916cb0000041c49444154789ce45cd172e4200c3337fbffbf9c9bce4eba449164a7` + `f7549d5fba2160580496053b7d1d4745d8ab6a2dfdfafc9a7b9dbdecebf3fed7b54` + `3bf5d7dd68f1ee71ffdf277d9ebfd872d303603fbcc9c6db0ecebf3398b7bbbdd2f` + `be67fda9fef938d31029b13eb11c679ead5d8690f285a8611943858f331111672a0` + `a61e4daeb33f4d08fdb2bfb1eeced7f438445a5dd1c6fe0ec2b1499cde93a1111f7` + `ed11091561dc8cabb5cfea2baed1e34c43c4e531bb31dee8d67a879caacf229b1e6` + `712224f137936bbfb733559829a6d1c47f77cb524445cbe7fb2315ba76e1d777cc3` + `187eb72ec7427f598894506138c3bb29be506bde451e9529ab2c98fb894164bdbf1` + `fb2ae62f00eb127c83a7e61c6d4e9e73906914db3637ee3347977aa81ed989fd350` + `abb0f7d59e21a421729acb5e156f9ce6d4639557888af15db67d1d471222fb1a756` + `b5acd9e5afb2a53467fae9dca00eebe931039add3192a4b75a725d56898096794e0` + `a26ba48d41645de757c579349763e173a7e1779f7298a2afcca8b51b8be51d3abbb` + `968a3b8a98a6b17e7fbce298988fc8433dc67b6e6153333d45574e4be63101151eb` + `34a71f587dd716cbbb68f84ce7a421c2f6849a0da7addbee1a4dae78c9b57d5b0c2` + `22f9ebf38e66619b25bcb7b5dad277cd6dbf515b447c469bc62e022eccfea57c327` + `4bdcee76592efaff580c22eb38d4fa479bc47ff5ac7c7d0f639055b8b1e4ee914e3` + `74cf329a56b1c37615f6a8f2e7abf9884885afb4ef5b1b2a91fe7ff49ffb9a72813` + `ed3055892c02765abce0660cfd74e3795b122235b8c353acaad041e6577eca9c3ab` + `268a9fac9e211b6a65d8462b3c3b477998c9631b7db5f8e5f56d6fdc8d231e5895a` + `ec3282dd545ee6b40f433057b3eb9309cfae2c92395fb7ae1bada2ce09f81a4a42a` + `48436de9f6fcd06f7e98e7ba67aa41b4f268f9cf6244752f5260839f5a722533796` + `ac3dd2451515e3591d1771ba28560df7a8f1bd2d0991cba360e749cec4da6359170` + `dd538d858ae7dc720427ed3a858bd865ca018ff38663c81653cdbbdf69bc7234ab9` + `a1b948540231979f617f4fa2dfd56210d9a2d624eb54ccad4cadf5a71aa6eb2f6f8f` + `94c8b5e67a80cf6cb777941f8594de973188c0adee77f1c35bd6dd9cdebe75ff8f77` + `2d47ec1d629173d8bddc6908b7a67faaf7b12d7bbe962721d2ebe15e43b08c7499df` + `6075992d96e3e7bbbf24443a5ee86645a151e6eeef093f313ff7681a83089c34a239` + `65d765cc2eda29c5c9fcb93df8a91783c8e07f3eb0f5ecd67ac707580723a24311fd` + `7edea72152c3138e633bf9eb189ef1883b6141ee717c84ed321171c6325a2c533abd` + `065c84a72c35886c2bfa17749dddd7e4a71cff2aee515ce47886ed557c17b64706a7` + `f135e006952fb9768ab1b11dd7e8e8270691c1ff7c503ac34515b69fd0570d4eddd9` + `331f6f0c22e6970fbfcbfe060000ffff11a9592e12644af00000000049454e44ae42` +
+		`6082`
 
 	// Assert equal image
 	if expect == actual {
@@ -609,15 +585,23 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 }
 
 func ExampleKey_URI() {
-	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
-		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
+	// Note that the "secret" query parameter (Base32 encoded) is at the end of
+	// the URI.
+	origin := "otpauth://totp/Example.com:alice@example.com?" +
+		"digits=12&algorithm=SHA1&period=60&issuer=Example.com&" +
+		"secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
 	key, err := totp.GenKeyFromURI(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	expect := origin
+	// As of v0.3.0, the Key.URI() method returns the URI with the secret as the
+	// first query parameter. For details see issue #55.
+	expect := "otpauth://totp/Example.com:alice@example.com?" +
+		"secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3&" +
+		"algorithm=SHA1&digits=12&issuer=Example.com&period=60"
+
 	actual := key.URI() // regenerate URI
 
 	if expect == actual {
