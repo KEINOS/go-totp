@@ -691,18 +691,25 @@ func ExampleOptions() {
 
 	// Issuer is the name of the service who issued the secret.
 	fmt.Println("Issuer:", options.Issuer)
+
 	// Name of the owner of the secret key.
 	fmt.Println("AccountName:", options.AccountName)
+
 	// Hash algorithm to generate the passcode as HMAC.
 	fmt.Println("Algorithm:", options.Algorithm)
+
 	// Length of the passcode.
 	fmt.Println("Digits:", options.Digits)
+
 	// Valid seconds of passcode issued.
 	fmt.Println("Period:", options.Period)
+
 	// Size of the secret key in bytes.
 	fmt.Println("Secret Size:", options.SecretSize)
+
 	// Skew is an acceptable range of time before and after. Value of 1 allows
-	// up to Period of either side of the specified time.
+	// up to Period of either side of the specified time. Tolerance time in other
+	// words.
 	fmt.Println("Skew:", options.Skew)
 	//
 	// Output:
