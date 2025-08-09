@@ -1,13 +1,16 @@
-//nolint:goconst // allow occurrences for readability
 package totp_test
 
 import (
 	"crypto/ecdh"
+	"crypto/pbkdf2"
 	"crypto/rand"
+	"crypto/sha3"
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/KEINOS/go-totp/totp"
+	"github.com/pkg/errors"
 )
 
 // This example demonstrates how to generate a new TOTP secret key from a shared
@@ -32,39 +35,39 @@ func Example_ecdh() {
 	//  Both parties must use the same protocol (agreed options) so that the
 	//  same shared secret is created and use it to generate a same TOTP
 	//  passcode within the same time frame.
-	//
+
 	// The curve type.
 	commonCurve := ecdh.X25519()
-	// A consistent and common context between the two parties. It will be used
-	// as a salt-like value for the TOTP secret key derivation.
-	commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
-	// Common options for the TOTP passcode generation.
-	commonOpts := totp.Options{
-		AccountName: "",                       // Name of the user. Empty due to be overridden
-		Issuer:      "",                       // Name of the service. Empty due to be overridden
-		Algorithm:   totp.Algorithm("SHA512"), // Algorithm for passcode generation
-		Digits:      totp.DigitsEight,         // Number of digits for the passcode
-		Period:      60 * 30,                  // Interval of the passcode validity
-		SecretSize:  32,                       // Size of the TOTP secret key in bytes
-		Skew:        1,                        // Number of periods as tolerance (+/-)
-	}
+	// A consistent and common context between the two parties.
+	// It will be used as a salt-like value for the TOTP secret key derivation.
+	commonCtx := "It can be any string but consistent between Alice and Bob."
 
 	// ------------------------------------------------------------------------
-	//  Key exchange between Alice and Bob.
+	//  Generate a new ECDH keys for Alice and Bob
 	// ------------------------------------------------------------------------
 	//  We pretend that Alice and Bob have exchanged their ECDH public keys
 	//  securely. In a real-world scenario, you must not expose your private
 	//  key to the public by any means.
-	alicePriv, alicePub := testGetECDHKeysForAlice(commonCurve)
-	bobPriv, bobPub := testGetECDHKeysForBob(commonCurve)
+
+	generateECDHKeys := func(commonCurve ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
+		priv, err := commonCurve.GenerateKey(rand.Reader)
+		if err != nil {
+			log.Fatal(err, "failed to generate ECDH private key")
+		}
+
+		return priv, priv.PublicKey()
+	}
+
+	ecdhPrivAlice, ecdhPubAlice := generateECDHKeys(commonCurve)
+	ecdhPrivBob, ecdhPubBob := generateECDHKeys(commonCurve)
 
 	// ------------------------------------------------------------------------
-	//  Generate a new TOTP key for Alice
+	//  Alice Side
 	// ------------------------------------------------------------------------
-	Issuer := "Example.com"            // name of the service
-	AccountName := "alice@example.com" // name of the user
+	issuerAlice := "Example.com"            // name of the service
+	accountNameAlice := "alice@example.com" // name of the user
 
-	key, err := totp.GenerateKey(Issuer, AccountName,
+	totpKeyAlice, err := totp.GenerateKey(issuerAlice, accountNameAlice,
 		// Use the ECDH shared secret between Alice and Bob as the base of the
 		// TOTP secret key. A common and consistent context is required.
 		//
@@ -72,135 +75,141 @@ func Example_ecdh() {
 		// is therefore derived from this shared secret using the key derivation
 		// function (KDF) set in the options to stretch up to the options.SecretSize.
 		// The default KDF is BLAKE3.
-		totp.WithECDH(alicePriv, bobPub, commonCtx),
-		// Other options can be set as well. But they must be the same between
-		// the two parties.
-		totp.WithAlgorithm(commonOpts.Algorithm),
-		totp.WithDigits(commonOpts.Digits),
-		totp.WithPeriod(commonOpts.Period),
-		totp.WithSecretSize(commonOpts.SecretSize),
-		totp.WithSkew(commonOpts.Skew),
+		totp.WithECDH(ecdhPrivAlice, ecdhPubBob, commonCtx),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Alice generates 8 digits of TOTP passcode
-	passcode, err := key.PassCode()
+	passcodeAlice, err := totpKeyAlice.PassCode()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Bob validates the passcode
-	result := letBobValidate(passcode, bobPriv, alicePub, commonOpts)
-	fmt.Println(result)
+	// ------------------------------------------------------------------------
+	//  Bob Side
+	// ------------------------------------------------------------------------
+	issuerBob := "Example.com"
+	accountNameBob := "alice@example.com"
+
+	totpKeyBob, err := totp.GenerateKey(issuerBob, accountNameBob,
+		totp.WithECDH(ecdhPrivBob, ecdhPubAlice, commonCtx),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Bob generates 8 digits of TOTP passcode
+	passcodeBob, err := totpKeyBob.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ------------------------------------------------------------------------
+	//  Validataion
+	// ------------------------------------------------------------------------
+	if passcodeAlice == passcodeBob {
+		fmt.Println("* Validation result: Passcode matches")
+	}
 	//
-	// Output: * Validation result: Passcode is valid
+	// Output: * Validation result: Passcode matches
 }
 
-func ExampleWithECDHKDF() {
+// This example demonstrates how to use a custom key derivation function (KDF)
+// for the TOTP secret key.
+func Example_ecdh_with_custom_KDF() {
 	// ------------------------------------------------------------------------
 	//  Pre-agreement between Alice and Bob.
 	// ------------------------------------------------------------------------
-	//  See the Example_ecdh() example for the details.
 	commonCurve := ecdh.X25519()
-	commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
+	commonCtx := "arbitrary string but consistent between Alice and Bob"
+
+	// Custom key derivation function (KDF) for the TOTP secret key.
+	//
+	// It uses PBKDF2 from the crypto/pbkdf2 package with SHA3-256 and 4096
+	// iterations. The "secret" is the ECDH shared secret. "ctx" is used as
+	// the salt to derive the TOTP secret key, and "outLen" is the desired
+	// length of the derived TOTP secret key.
+	commonKDF := func(secret []byte, ctx []byte, outLen uint) ([]byte, error) {
+		const iter = 4096
+
+		// At least 8 bytes is recommended by the RFC.
+		if len(ctx) < 8 {
+			return nil, errors.New("context too short. PBKDF2 requires at least 8 bytes")
+		}
+
+		// Check for potential integer overflow during uint to int conversion
+		if outLen == 0 || outLen > math.MaxInt {
+			return nil, errors.New("output length is out of valid range for int conversion")
+		}
+
+		return pbkdf2.Key(sha3.New256, string(secret), ctx, iter, int(outLen))
+	}
 
 	// ------------------------------------------------------------------------
-	//  Key exchange between Alice and Bob.
+	//  Generate a new ECDH keys for Alice and Bob
 	// ------------------------------------------------------------------------
-	alicePriv, alicePub := testGetECDHKeysForAlice(commonCurve)
-	bobPriv, bobPub := testGetECDHKeysForBob(commonCurve)
+	generateECDHKeys := func(paramCommon ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
+		priv, err := paramCommon.GenerateKey(rand.Reader)
+		if err != nil {
+			log.Fatal(err, "failed to generate ECDH private key")
+		}
+
+		return priv, priv.PublicKey()
+	}
+
+	//  We pretend that Alice and Bob have exchanged their ECDH public keys
+	ecdhPrivAlice, ecdhPubAlice := generateECDHKeys(commonCurve)
+	ecdhPrivBob, ecdhPubBob := generateECDHKeys(commonCurve)
 
 	// ------------------------------------------------------------------------
-	//  Generate a new TOTP key for Alice
+	//  Alice Side
 	// ------------------------------------------------------------------------
-	Issuer := "Example.com"            // name of the service
-	AccountName := "alice@example.com" // name of the user
 
-	key, err := totp.GenerateKey(Issuer, AccountName,
-		totp.WithECDH(alicePriv, bobPub, commonCtx),
-		// You can assign a custom function to derive the TOTP secret key from
-		// the ECDH shared secret. The default is BLAKE3. Any function that
-		// implements the totp.KDF interface can be used.
-		totp.WithECDHKDF(totp.OptionKDFDefault),
+	// Generate a new TOTP key for Alice using ECDH key and common context
+	totpKeyAlice, err := totp.GenerateKey("Example.com", "alice@example.com",
+		totp.WithECDH(ecdhPrivAlice, ecdhPubBob, commonCtx),
+		// Assign a custom function to derive the TOTP secret key from the ECDH
+		// shared secret. If not set, totp.OptionKDFDefault will be used, which
+		// is BLAKE3.
+		totp.WithECDHKDF(commonKDF),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	commonOpts := key.Options // Bob must use the same options as Alice
 
 	// Alice generates 8 digits of TOTP passcode
-	passcode, err := key.PassCode()
+	passcodeAlice, err := totpKeyAlice.PassCode()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Bob validates the passcode
-	result := letBobValidate(passcode, bobPriv, alicePub, commonOpts)
-	fmt.Println(result)
-	//
-	// Output: * Validation result: Passcode is valid
-}
-
-func letBobValidate(
-	alicePasscode string,
-	bobPriv *ecdh.PrivateKey,
-	alicePub *ecdh.PublicKey,
-	commonOpts totp.Options,
-) string {
-	// Pre-agreement between Alice and Bob.
-	commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
-
 	// ------------------------------------------------------------------------
-	//  Generate a new TOTP key for Bob
+	//  Bob Side
 	// ------------------------------------------------------------------------
-	Issuer := "Example.com"
-	AccountName := "bob@example.com"
 
-	key, err := totp.GenerateKey(Issuer, AccountName,
-		totp.WithECDH(bobPriv, alicePub, commonCtx),
-		totp.WithPeriod(commonOpts.Period),
-		totp.WithAlgorithm(commonOpts.Algorithm),
-		totp.WithSecretSize(commonOpts.SecretSize),
-		totp.WithSkew(commonOpts.Skew),
-		totp.WithDigits(commonOpts.Digits),
+	// Generate a new TOTP key for Bob using ECDH key and common context
+	totpKeyBob, err := totp.GenerateKey("Example.com", "bob@example.com",
+		totp.WithECDH(ecdhPrivBob, ecdhPubAlice, commonCtx),
+		totp.WithECDHKDF(commonKDF),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Bob validates the passcode
-	if key.Validate(alicePasscode) {
-		return "* Validation result: Passcode is valid"
-	}
-
-	return "* Validation result: Passcode is invalid"
-}
-
-// This is a dummy function to return Alice's ECDH private key.
-// In a real-world scenario, you would generate this key securely.
-//
-// paramCommon is the curve type agreed between Alice and Bob.
-func testGetECDHKeysForAlice(paramCommon ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
-	alicePriv, err := paramCommon.GenerateKey(rand.Reader)
+	// Bob generates 8 digits of TOTP passcode
+	passcodeBob, err := totpKeyBob.PassCode()
 	if err != nil {
-		log.Fatal(err, "failed to generate Alice's ECDH private key for example")
+		log.Fatal(err)
 	}
 
-	return alicePriv, alicePriv.PublicKey()
-}
-
-// This is a dummy function to return Bob's ECDH public key.
-// In a real-world scenario, you would obtain this key securely.
-//
-// paramCommon is the curve type agreed between Alice and Bob.
-func testGetECDHKeysForBob(paramCommon ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
-	bobPriv, err := paramCommon.GenerateKey(rand.Reader)
-	if err != nil {
-		log.Fatal(err, "failed to generate Alice's ECDH private key for example")
+	// ------------------------------------------------------------------------
+	//  Validataion
+	// ------------------------------------------------------------------------
+	if passcodeAlice == passcodeBob {
+		fmt.Println("* Validation result: Passcode matches")
 	}
-
-	return bobPriv, bobPriv.PublicKey()
+	//
+	// Output: * Validation result: Passcode matches
 }

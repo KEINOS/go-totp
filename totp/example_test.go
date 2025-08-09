@@ -72,12 +72,11 @@ func Example_custom() {
 	AccountName := "alice@example.com"
 
 	key, err := totp.GenerateKey(Issuer, AccountName,
-		// Algorithm choices are: MD5, SHA1, SHA256 and SHA512.
-		totp.WithAlgorithm(totp.Algorithm("SHA256")),
-		totp.WithPeriod(15),
-		totp.WithSecretSize(256),
-		totp.WithSkew(5),
-		totp.WithDigits(totp.DigitsEight),
+		totp.WithAlgorithm(totp.Algorithm("SHA256")), // Algorithm for passcode generation (MD5, SHA1, SHA256 and SHA512)
+		totp.WithPeriod(15),                          // Interval of the passcode validity
+		totp.WithSecretSize(256),                     // Size of the TOTP secret key in bytes
+		totp.WithSkew(5),                             // Number of periods as tolerance (+/-)
+		totp.WithDigits(totp.DigitsEight),            // Number of digits for the passcode
 	)
 	if err != nil {
 		log.Fatal(err)
