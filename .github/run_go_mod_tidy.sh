@@ -27,7 +27,7 @@ cp -f go.sum go.sum.bak
 # go get "github.com/pquerna/otp"
 
 echo '* Run go tidy ...'
-go mod tidy -go 1.23.0
+go mod tidy -go 1.24.0
 
 echo '* Run tests ...'
 go test ./... && {

@@ -1,7 +1,3 @@
-# Unit testing on vaious Go versions, such as Go 1.22 and later.
-# It will test the generated password hash verifying with PHP and Python.
-#
-# This workflow caches images built with Docker and docker-compose to speed up its execution.
 name: UnitTests
 
 on:
