@@ -80,6 +80,7 @@ key, err := totp.GenerateKey(Issuer, AccountName,
     totp.WithAlgorithm(totp.Algorithm("SHA256")),
     totp.WithPeriod(15),
     totp.WithSecretSize(256),
+    totp.WithSecretQueryFirst(false),
     totp.WithSkew(5),
     totp.WithDigits(totp.DigitsEight),
 )
@@ -110,7 +111,11 @@ pngBytes, err := qrCodeObj.PNG(100, 100)
 pemKey, err := key.PEM()
 
 // Get the secret key in TOTP URI format string.
-// This is equivalent to key.String().
+// The output is equivalent to key.String().
+//
+// The query parameters of generated URI are sorted except for the "secret"
+// parameter which is kept at the top. This avoids a niche reading error of
+// Google Authenticator app if the QR code image is generated with other apps.
 uriKey := key.URI()
 
 // Retrieve the secret value in various formats.
@@ -146,15 +151,15 @@ commonCtx := "example.com alice@example.com bob@example.com TOTP secret v1"
 
 // ECDH Key pair generator. Do not expose the private key.
 func newECDHKeys(paramCommon ecdh.Curve) (*ecdh.PrivateKey, *ecdh.PublicKey) {
-	priv, err := paramCommon.GenerateKey(rand.Reader)
-	if err != nil {
-		log.Fatal(err, "failed to generate Alice's ECDH private key for example")
-	}
+    priv, err := paramCommon.GenerateKey(rand.Reader)
+    if err != nil {
+        log.Fatal(err, "failed to generate ECDH private key")
+    }
 
-	return priv, priv.PublicKey()
+    return priv, priv.PublicKey()
 }
 
-// Key exchange between Alice and Bob.
+// Generate a new ECDH key for Alice and Bob and exchange public keys.
 alicePriv, alicePub := newECDHKeys(commonCurve)
 bobPriv, bobPub := newECDHKeys(commonCurve)
 
