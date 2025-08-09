@@ -27,23 +27,6 @@ jobs:
           go-version: '1'
           check-latest: true
 
-      - name: Create image tag from file hash
-        uses: KEINOS/gh-action-hash-for-cache@main
-        id: imagetag
-        # Udate the hash if Dockerfile/go.mod is changed or the month has changed.
-        with:
-          path: |
-            ./go.mod
-            ./.github/Dockerfile
-            ./.github/docker-compose.yml
-          variant: ${{ runner.os }}$(TZ=UTC-9 date '+%Y%m')
-
-      - name: Use Cache
-        uses: actions/cache@v4
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ steps.imagetag.outputs.hash }}
-
       - name: Run unit test
         run: |
           go mod download
