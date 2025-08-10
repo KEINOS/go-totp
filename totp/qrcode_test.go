@@ -389,26 +389,28 @@ func TestQRCode_PNG_fix59_error_correction_level(t *testing.T) {
 	// Use a sufficiently large size to make differences more visible
 	const width, height = 300, 300
 
-	var prevSize int
-	var prevName string
+	var (
+		prevSize int
+		prevName string
+	)
 
-	for i, lvl := range levels {
-		qrCode, err := key.QRCode(lvl)
-		require.NoErrorf(t, err, "failed to create QRCode for %s", names[i])
+	for index, fixLevel := range levels {
+		qrCode, err := key.QRCode(fixLevel)
+		require.NoErrorf(t, err, "failed to create QRCode for %s", names[index])
 
 		pngBytes, err := qrCode.PNG(width, height)
-		require.NoErrorf(t, err, "failed to generate PNG for %s", names[i])
+		require.NoErrorf(t, err, "failed to generate PNG for %s", names[index])
 
-		t.Logf("%s PNG size: %d bytes", names[i], len(pngBytes))
+		t.Logf("%s PNG size: %d bytes", names[index], len(pngBytes))
 
-		if i > 0 {
+		if index > 0 {
 			// Expect strictly increasing size as error correction level increases
 			require.Greaterf(t, len(pngBytes), prevSize,
 				"PNG size should increase with higher error correction level: prev=%s(%d) -> curr=%s(%d)",
-				prevName, prevSize, names[i], len(pngBytes))
+				prevName, prevSize, names[index], len(pngBytes))
 		}
 
 		prevSize = len(pngBytes)
-		prevName = names[i]
+		prevName = names[index]
 	}
 }
