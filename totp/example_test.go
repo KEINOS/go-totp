@@ -678,48 +678,58 @@ func ExampleNewSecretBytes() {
 //  Type: Options
 // ============================================================================
 
-//nolint:exhaustruct // allow missing fields
+func ExampleOptions_SetDefault() {
+	options, err := totp.NewOptions("Example.com", "alice@example.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	options.SetDefault() // reset all the fields to their default values.
+
+	/* List all exposed options and their values after reset. */
+	fmt.Printf("Issuer: \"%v\"\n", options.Issuer)
+	fmt.Printf("AccountName: \"%v\"\n", options.AccountName)
+	fmt.Printf("Algorithm: \"%v\"\n", options.Algorithm)
+	fmt.Printf("Digits: \"%v\"\n", options.Digits)
+	fmt.Printf("Period: \"%v\"\n", options.Period)
+	fmt.Printf("Secret Size: \"%v\"\n", options.SecretSize)
+	fmt.Printf("Skew: \"%v\"\n", options.Skew)
+	//
+	// Output:
+	// Issuer: ""
+	// AccountName: ""
+	// Algorithm: "SHA1"
+	// Digits: "6"
+	// Period: "30"
+	// Secret Size: "128"
+	// Skew: "1"
+}
+
 func ExampleOptions() {
+	// You may instantiate Options directly but it's recommended to use
+	// NewOptions() for convenience.
 	options := totp.Options{
 		Issuer:      "Example.com",
 		AccountName: "alice@example.com",
 	}
 
-	options.SetDefault()
-
-	/* List all option and their default values. */
-
-	// Issuer is the name of the service who issued the secret.
-	fmt.Println("Issuer:", options.Issuer)
-
-	// Name of the owner of the secret key.
-	fmt.Println("AccountName:", options.AccountName)
-
-	// Hash algorithm to generate the passcode as HMAC.
-	fmt.Println("Algorithm:", options.Algorithm)
-
-	// Length of the passcode.
-	fmt.Println("Digits:", options.Digits)
-
-	// Valid seconds of passcode issued.
-	fmt.Println("Period:", options.Period)
-
-	// Size of the secret key in bytes.
-	fmt.Println("Secret Size:", options.SecretSize)
-
-	// Skew is an acceptable range of time before and after. Value of 1 allows
-	// up to Period of either side of the specified time. Tolerance time in other
-	// words.
-	fmt.Println("Skew:", options.Skew)
+	/* List all exposed options and their values */
+	fmt.Printf("Issuer: \"%v\"\n", options.Issuer)
+	fmt.Printf("AccountName: \"%v\"\n", options.AccountName)
+	fmt.Printf("Algorithm: \"%v\"\n", options.Algorithm)
+	fmt.Printf("Digits: \"%v\"\n", options.Digits)
+	fmt.Printf("Period: \"%v\"\n", options.Period)
+	fmt.Printf("Secret Size: \"%v\"\n", options.SecretSize)
+	fmt.Printf("Skew: \"%v\"\n", options.Skew)
 	//
 	// Output:
-	// Issuer: Example.com
-	// AccountName: alice@example.com
-	// Algorithm: SHA1
-	// Digits: 6
-	// Period: 30
-	// Secret Size: 128
-	// Skew: 1
+	// Issuer: "Example.com"
+	// AccountName: "alice@example.com"
+	// Algorithm: ""
+	// Digits: "0"
+	// Period: "0"
+	// Secret Size: "0"
+	// Skew: "0"
 }
 
 // ============================================================================
