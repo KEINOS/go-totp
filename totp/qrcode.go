@@ -16,8 +16,9 @@ type QRCode struct {
 	Level FixLevel // Level is the error correction level for the QR code.
 }
 
-// Image returns an image.Image object of the QR code. Minimum width and height
-// is 49x49.
+// Image returns an image.Image object of the QR code.
+// Note: The underlying library cannot scale to images smaller than 49x49.
+// Passing smaller sizes will result in an error from the scaler.
 func (q *QRCode) Image(width, height int) (image.Image, error) {
 	uri := q.URI.String()
 
@@ -42,8 +43,8 @@ func (q *QRCode) Image(width, height int) (image.Image, error) {
 //nolint:gochecknoglobals // allow private global variable to mock during tests
 var pngEncode = png.Encode
 
-// PNG returns a PNG image of the QR code in bytes. Minimum width and height
-// is 49x49.
+// PNG returns a PNG image of the QR code in bytes.
+// See Image() for size constraints when width/height are below 49.
 func (q *QRCode) PNG(width, height int) ([]byte, error) {
 	img, err := q.Image(width, height)
 	if err != nil {

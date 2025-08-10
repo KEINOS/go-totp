@@ -20,7 +20,7 @@ const errNilOptions = "options is nil"
 //  Option Patterns
 // ----------------------------------------------------------------------------
 
-// WithAlgorithm sets the Algorithm to use for HMAC (Default: Algorithm("SHA512")).
+// WithAlgorithm sets the Algorithm to use for HMAC (Default: Algorithm("SHA1")).
 func WithAlgorithm(algo Algorithm) Option {
 	return func(opts *Options) error {
 		if opts == nil {
@@ -59,14 +59,15 @@ func WithDigits(digits Digits) Option {
 //   - Both ECDH keys must be generated from the same curve type.
 //
 //   - context is required as a consistent string between the two parties.
-//
 //     Both parties must use the same context to generate the same shared secret.
 //     The context string can be anything, but it must be consistent between the
-//     two parties. The recommended format is:
+//     two parties.
 //
-//     "[issuer] [sorted account names] [purpose] [version]"
+// The recommended format is:
 //
-//     e.g.) "example.com alice@example.com bob@example.com TOTP secret v1"
+//	"[issuer] [sorted account names] [purpose] [version]"
+//
+//	e.g.) "example.com alice@example.com bob@example.com TOTP secret v1"
 func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context string) Option {
 	return func(opts *Options) error {
 		if opts == nil {
@@ -83,10 +84,17 @@ func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context stri
 	}
 }
 
-// WithECDHKDF sets the userKDF, user definded key derivation function, to derive
-// a TOTP secret key from a ECDH shared secret.
+// WithECDHKDF sets the userKDF, user-defined key derivation function, to derive
+// a TOTP secret key from an ECDH shared secret.
 //
-// The function must implement the totp.KDF interface.
+// The function must match the following signature:
+//
+//	func(secret, ctx []byte, outLen uint) ([]byte, error)
+//
+// Responsibility: The KDF must deterministically derive and return exactly
+// outLen bytes. If it cannot produce outLen bytes, it should return an error.
+// The ctx should be a stable, application-specific context string used for
+// domain separation to avoid key reuse across different purposes.
 func WithECDHKDF(userKDF func(secret, ctx []byte, outLen uint) ([]byte, error)) Option {
 	return func(opts *Options) error {
 		if opts == nil {

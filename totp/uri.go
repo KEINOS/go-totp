@@ -21,7 +21,7 @@ import (
 type URI string
 
 // ----------------------------------------------------------------------------
-//  Constructiors
+//  Constructors
 // ----------------------------------------------------------------------------
 
 // NewURI returns a new URI object. It simply returns the casted string as a
@@ -133,8 +133,12 @@ func (u URI) Host() string {
 	return parsedURI.Host
 }
 
-// Issuer returns the issuer from the URI. Similar to IssuerFromPath() but returns
-// the issuer from the query string instead of the path.
+// Issuer returns the issuer from the URI.
+//
+// It prefers the query parameter "issuer" when present, otherwise falls back
+// to the issuer parsed from the path label (see IssuerFromPath()). If both are
+// present and equal, that value is returned. If both are present but differ,
+// an empty string is returned to indicate ambiguity.
 func (u URI) Issuer() string {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
