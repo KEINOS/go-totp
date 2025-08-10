@@ -26,7 +26,7 @@ import (
 )
 
 // StrToUint converts a string to an unsigned integer. If the string is not a
-// valid integer or out of range of int32, it returns 0.
+// valid integer or out of range of uint32, it returns 0.
 func StrToUint(number string) uint {
 	const (
 		base10  = 10

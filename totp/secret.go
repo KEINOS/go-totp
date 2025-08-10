@@ -16,7 +16,7 @@ import (
 type Secret []byte
 
 // ----------------------------------------------------------------------------
-//  Constructiors
+//  Constructors
 // ----------------------------------------------------------------------------
 
 // NewSecretBytes creates a new Secret object from a byte slice.

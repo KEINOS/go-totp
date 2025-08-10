@@ -29,13 +29,15 @@ type Key struct {
 //  Constructor
 // ----------------------------------------------------------------------------
 
-// GenerateKey creates a new Key object with default options. Which is:
+// GenerateKey creates a new Key object.
 //
-//	SHA-512 hash for HMAC, 30 seconds of period, 64 byte size of secret and
-//	6 digits of passcode.
+// To customize the options, use the With* functions, if `opt` is empty, it will
+// use the default options.
 //
-// To customize the options, use the With* functions from the options.go file.
-// For advanced customization, use GenerateKeyCustom() instead.
+//	key, err := totp.GenerateKey("MyIssuer", "MyAccountName",
+//		totp.WithAlgorithm(totp.Algorithm("SHA256"))
+//		// for more customization options, see the options.go file.
+//	)
 func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error) {
 	// Create options with default values.
 	optsCustom, err := NewOptions(issuer, accountName)

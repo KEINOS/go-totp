@@ -73,9 +73,7 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 // ----------------------------------------------------------------------------
 
 // ID returns the ID of the algorithm which is the same int value as the
-// original OTP library.
-//
-// Undefined ID will always return 2 (SHA512).
+// original OTP library. Undefined ID will return -1.
 func (algo Algorithm) ID() int {
 	const (
 		cMD5            = "MD5"
@@ -112,7 +110,7 @@ func (algo Algorithm) IsSupported() bool {
 // OTPAlgorithm is similar to ID() but returns in the original type of the OTP
 // library.
 //
-// Undefined Algorithm type will always return `otp.AlgorithmSHA512`.
+// Undefined Algorithm type will always return -1 (see issue #6).
 func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
 	switch algo {
 	case "MD5":
