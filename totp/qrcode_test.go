@@ -367,3 +367,50 @@ func decodeQRCodeWithGozxing(t *testing.T, pngData []byte) string {
 
 	return ""
 }
+
+// ----------------------------------------------------------------------------
+//  Regression test for fix #59: QR error correction level must affect output
+// ----------------------------------------------------------------------------
+
+// TestQRCode_PNG_fix59_error_correction_level ensures that the generated PNG
+// size increases as the QR error correction level increases. This test is
+// expected to reproduce the issue described in #59.
+func TestQRCode_PNG_fix59_error_correction_level(t *testing.T) {
+	t.Parallel()
+
+	// Generate a stable key and URI
+	key, err := GenerateKey("Fix59 Issuer", "fix59@example.com")
+	require.NoError(t, err, "failed to generate key for test setup")
+
+	// Define levels from low to high error correction
+	levels := []FixLevel{FixLevel7, FixLevel15, FixLevel25, FixLevel30}
+	names := []string{"FixLevel7", "FixLevel15", "FixLevel25", "FixLevel30"}
+
+	// Use a sufficiently large size to make differences more visible
+	const width, height = 300, 300
+
+	var (
+		prevSize int
+		prevName string
+	)
+
+	for index, fixLevel := range levels {
+		qrCode, err := key.QRCode(fixLevel)
+		require.NoErrorf(t, err, "failed to create QRCode for %s", names[index])
+
+		pngBytes, err := qrCode.PNG(width, height)
+		require.NoErrorf(t, err, "failed to generate PNG for %s", names[index])
+
+		t.Logf("%s PNG size: %d bytes", names[index], len(pngBytes))
+
+		if index > 0 {
+			// Expect strictly increasing size as error correction level increases
+			require.Greaterf(t, len(pngBytes), prevSize,
+				"PNG size should increase with higher error correction level: prev=%s(%d) -> curr=%s(%d)",
+				prevName, prevSize, names[index], len(pngBytes))
+		}
+
+		prevSize = len(pngBytes)
+		prevName = names[index]
+	}
+}

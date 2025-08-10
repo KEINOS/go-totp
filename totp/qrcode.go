@@ -21,7 +21,8 @@ type QRCode struct {
 func (q *QRCode) Image(width, height int) (image.Image, error) {
 	uri := q.URI.String()
 
-	qrCode, err := qr.Encode(uri, qr.M, qr.Auto)
+	// Use the configured error correction level rather than a fixed value
+	qrCode, err := qr.Encode(uri, q.Level.qrFixLevel(), qr.Auto)
 	if err != nil || uri == "" {
 		if uri == "" {
 			err = errors.New("empty URI")
