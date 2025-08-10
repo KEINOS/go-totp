@@ -86,8 +86,7 @@ func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context stri
 // WithECDHKDF sets the userKDF, user definded key derivation function, to derive
 // a TOTP secret key from a ECDH shared secret.
 //
-// The function must implement the totp.KDF interface. If userKDF is nil, it uses
-// the default KDF which is Blake3.
+// The function must implement the totp.KDF interface.
 func WithECDHKDF(userKDF func(secret, ctx []byte, outLen uint) ([]byte, error)) Option {
 	return func(opts *Options) error {
 		if opts == nil {

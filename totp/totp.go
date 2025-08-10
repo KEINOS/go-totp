@@ -1,19 +1,19 @@
 /*
 Package totp is a simple Go package to implement Timebased-One-Time-Password
-authentication functionality, a.k.a. `TOTP`, to the Go app.
+authentication functionality, a.k.a. TOTP, to the Go app.
 
 Optionally, it supports ECDH key agreement protocol to share the same secret key
 between two parties.
 
-```shellsession
-# Install the module
-go get github.com/KEINOS/go-totp
-```
+	```shellsession
+	# Install the module
+	go get github.com/KEINOS/go-totp
+	```
 
-```go
-// Use the package
-import "github.com/KEINOS/go-totp/totp"
-```
+	```go
+	// Use the package
+	import "github.com/KEINOS/go-totp/totp"
+	```
 */
 package totp
 

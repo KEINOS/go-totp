@@ -116,8 +116,8 @@ func Example_ecdh() {
 	// Output: * Validation result: Passcode matches
 }
 
-// This example demonstrates how to use a custom key derivation function (KDF)
-// for the TOTP secret key.
+// This example demonstrates how to use a custom KDF (Key Derivation Function)
+// that derives the TOTP secret key from the ECDH shared secret.
 func Example_ecdh_with_custom_KDF() {
 	// ------------------------------------------------------------------------
 	//  Pre-agreement between Alice and Bob.
@@ -125,12 +125,12 @@ func Example_ecdh_with_custom_KDF() {
 	commonCurve := ecdh.X25519()
 	commonCtx := "arbitrary string but consistent between Alice and Bob"
 
-	// Custom key derivation function (KDF) for the TOTP secret key.
+	// Custom KDF (Key Derivation Function) for the TOTP secret key.
 	//
-	// It uses PBKDF2 from the crypto/pbkdf2 package with SHA3-256 and 4096
-	// iterations. The "secret" is the ECDH shared secret. "ctx" is used as
-	// the salt to derive the TOTP secret key, and "outLen" is the desired
-	// length of the derived TOTP secret key.
+	// This custom function uses PBKDF2 from the crypto/pbkdf2 package with
+	// SHA3-256 and 4096 iterations. The "secret" is the ECDH shared secret.
+	// "ctx" is used as the salt to derive the TOTP secret key, and "outLen"
+	// is the desired length of the derived TOTP secret key.
 	commonKDF := func(secret []byte, ctx []byte, outLen uint) ([]byte, error) {
 		const iter = 4096
 
