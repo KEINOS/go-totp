@@ -47,6 +47,9 @@ func OptionKDFDefault(secret, ctx []byte, outLen uint) ([]byte, error) {
 
 // Options is a struct that holds the options for a TOTP key. Use SetDefault()
 // to set the default values.
+//
+// Note that "Options" does not hold the actual TOTP "secret" key. The "Key"
+// object holds the secret key with these options.
 type Options struct {
 	// AccountName is the name of the secret key owner. (eg, email address)
 	AccountName string
@@ -112,29 +115,23 @@ func NewOptions(issuer, accountName string) (*Options, error) {
 //  Methods
 // ----------------------------------------------------------------------------
 
-// SetDefault sets the undefined options to its default value.
+// SetDefault resets all the options to their default values. Use this method
+// for initializing a new Options struct with default values.
+//
+// As of v0.3.1, this method will override all options even if they contain values.
+//
+// - See: https://github.com/KEINOS/go-totp/issues/56
 func (opts *Options) SetDefault() {
-	if opts.Algorithm == "" {
-		opts.Algorithm = OptionAlgorithmDefault
-	}
-
-	if opts.Digits == 0 {
-		opts.Digits = OptionDigitsDefault
-	}
-
-	if opts.Period == 0 {
-		opts.Period = OptionPeriodDefault
-	}
-
-	// Fix #55
-	opts.prependSecretInURI = OptionPrependSecretInURIDefault
-
-	if opts.SecretSize == 0 {
-		opts.SecretSize = OptionSecretSizeDefault
-	}
-
-	// Fix #42
-	if opts.Skew == 0 {
-		opts.Skew = OptionSkewDefault
-	}
+	opts.AccountName = ""
+	opts.Algorithm = OptionAlgorithmDefault
+	opts.Digits = OptionDigitsDefault
+	opts.ecdhCtx = ""
+	opts.ecdhPrivateKey = nil
+	opts.ecdhPublicKey = nil
+	opts.Issuer = ""
+	opts.kdf = OptionKDFDefault
+	opts.Period = OptionPeriodDefault
+	opts.prependSecretInURI = OptionPrependSecretInURIDefault // Fix #55
+	opts.SecretSize = OptionSecretSizeDefault
+	opts.Skew = OptionSkewDefault // Fix #42
 }
