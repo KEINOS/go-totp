@@ -64,6 +64,12 @@ var totpGenerate = totp.Generate
 func GenerateKeyCustom(options Options) (*Key, error) {
 	internalSec := []byte{} // random by default (if len = 0)
 
+	// Fall back to default KDF if not set
+	if options.kdf == nil {
+		options.kdf = OptionKDFDefault
+	}
+
+	// Derive totp secret key from ECDH shared secret via KDF
 	if options.ecdhPrivateKey != nil && options.ecdhPublicKey != nil {
 		// Generate ECDH shared secret (32 bytes)
 		ecdhSecret, err := options.ecdhPrivateKey.ECDH(options.ecdhPublicKey)
@@ -71,16 +77,14 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 			return nil, errors.Wrap(err, "failed to generate ECDH shared secret")
 		}
 
-		if options.kdf == nil {
-			options.kdf = OptionKDFDefault
-		}
-
+		// Derive the internal secret using the KDF
 		internalSec, err = options.kdf(ecdhSecret, []byte(options.ecdhCtx), options.SecretSize)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to derive key from ECDH shared secret")
 		}
 	}
 
+	// Apply to the parent library object
 	tmpOpt := totp.GenerateOpts{
 		Issuer:      options.Issuer,
 		AccountName: options.AccountName,
