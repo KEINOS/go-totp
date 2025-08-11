@@ -65,7 +65,7 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 		return cMD5, nil
 	}
 
-	return "", errors.New("invalid algorithm ID. it should be 0, 1, 2 or 3")
+	return "", errors.New("unsupported algorithm ID. it should be 0, 1, 2 or 3")
 }
 
 // ----------------------------------------------------------------------------
