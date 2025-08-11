@@ -165,14 +165,16 @@ func TestURI_Issuer_goledn(t *testing.T) {
 		issuer string
 		msg    string
 	}{
-		{"otpauth://totp/Example.com:", "Example.com",
-			"label following colon should treat as issuer"},
+		{"otpauth://totp/Example.com:?issuer=Example.com", "Example.com",
+			"issuer should be parsed when both label and query match"},
+		{"otpauth://totp/Example.com:", "",
+			"label following colon should be invalid if query is missing"},
 		{"otpauth://totp/alice@example.com?foo=bar", "",
 			"missing colon should treat as account name"},
 		{"otpauth://totp/alice@example.com?issuer=Example.org",
-			"Example.org", "issuer in query should be used"},
-		{"otpauth://totp/:?issuer=Example.org", "Example.org",
-			"issuer in query should be used"},
+			"", "issuer in query should be invalid if label is missing"},
+		{"otpauth://totp/:?issuer=Example.org", "",
+			"issuer in query should be invalid if label is empty"},
 	} {
 		uri := URI(test.uri)
 		expect := test.issuer
@@ -328,6 +330,16 @@ func TestURI_Label_golden(t *testing.T) {
 			name:   "empty label",
 			uri:    "otpauth://totp/?algorithm=SHA1",
 			expect: "",
+		},
+		{
+			name:   "Provider1:Alice%20Smith",
+			uri:    "otpauth://totp/Provider1:Alice%20Smith?secret=JBSWY3DPEHPK3PXP&issuer=Provider1",
+			expect: "Provider1:Alice Smith",
+		},
+		{
+			name:   "Big%20Corporation%3A%20alice%40bigco.com",
+			uri:    "otpauth://totp/Big%20Corporation%3A%20alice%40bigco.com?secret=JBSWY3DPEHPK3PXP&issuer=Big%20Corporation",
+			expect: "Big Corporation: alice@bigco.com",
 		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {

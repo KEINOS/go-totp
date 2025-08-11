@@ -135,10 +135,9 @@ func (u URI) Host() string {
 
 // Issuer returns the issuer from the URI.
 //
-// It prefers the query parameter "issuer" when present, otherwise falls back
-// to the issuer parsed from the path label (see IssuerFromPath()). If both are
-// present and equal, that value is returned. If both are present but differ,
-// an empty string is returned to indicate ambiguity.
+// It requires that the issuer is present in both the path label and the query
+// parameter, and that they match. If they do not, an empty string is returned
+// to indicate an invalid or ambiguous issuer.
 func (u URI) Issuer() string {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
@@ -148,13 +147,8 @@ func (u URI) Issuer() string {
 	issuerPath := u.IssuerFromPath()
 	issuerQuery := parsedURI.Query().Get("issuer")
 
-	// Search issuer from the query string
-	switch {
-	case issuerQuery != "" && issuerPath == "":
-		return issuerQuery
-	case issuerQuery == "" && issuerPath != "":
-		return issuerPath
-	case issuerQuery == issuerPath:
+	// Both must exist and match.
+	if issuerPath != "" && issuerQuery != "" && issuerPath == issuerQuery {
 		return issuerQuery
 	}
 
