@@ -191,6 +191,31 @@ func (u URI) Path() string {
 	return parsedURI.Path
 }
 
+// Label returns the LABEL part of the URI in an unescaped form without the
+// leading slash. When the URI is malformed, it returns an empty string.
+//
+// Based on the following format of Google Authenticator:
+//
+//	otpauth://TYPE/LABEL?PARAMETERS
+func (u URI) Label() string {
+	parsedURI, err := url.Parse(string(u))
+	if err != nil {
+		return ""
+	}
+
+	label := strings.TrimPrefix(parsedURI.Path, "/")
+	if label == "" {
+		return ""
+	}
+
+	// Decode percent-encoded characters in the label path.
+	// Ignoring errors. Normally unreachable because url.Parse rejects invalid
+	// percent-encoding in the path first.
+	unescaped, _ := url.PathUnescape(label)
+
+	return unescaped
+}
+
 // Period returns the number of seconds a TOTP hash is valid for from the URI.
 // If the period is not set or the URL is invalid, it returns 0.
 func (u URI) Period() uint {
@@ -209,6 +234,27 @@ func (u URI) Period() uint {
 	}
 
 	return 0
+}
+
+// Parameters returns the query component of the URI without the leading '?'.
+//
+// When secretFirst is true and a 'secret' parameter exists, it is placed at the
+// beginning; otherwise, parameters are sorted in alphabetical order as per
+// url.Values.Encode(). Spaces are encoded as %20 (not '+'). Returns an empty
+// string when the URI is malformed.
+//
+// Based on the following format of Google Authenticator:
+//
+//	otpauth://TYPE/LABEL?PARAMETERS
+func (u URI) Parameters(secretFirst bool) string {
+	parsedURI, err := url.Parse(string(u))
+	if err != nil {
+		return ""
+	}
+
+	values := parsedURI.Query()
+
+	return encodeQuery(values, secretFirst)
 }
 
 // Scheme returns the scheme/protocol from the URI. This should be `otpauth`.
@@ -240,4 +286,60 @@ func (u URI) Secret() Secret {
 // It just returns the raw URI.
 func (u URI) String() string {
 	return string(u)
+}
+
+// Type returns the type to distinguish whether the key will be used for HOTP
+// (counter-based) or for TOTP (time-based).
+//
+// Based on the following format of Google Authenticator:
+//
+//	otpauth://TYPE/LABEL?PARAMETERS
+func (u URI) Type() string {
+	// Return empty when scheme is not 'otpauth' or URL is malformed
+	if u.Scheme() != "otpauth" {
+		return ""
+	}
+
+	// In otpauth URI, TYPE is represented by the host part (e.g., 'totp' or 'hotp').
+	return u.Host()
+}
+
+// encodeQuery encodes url.Values to a query string without leading '?'.
+// When secretFirst is true and key 'secret' exists, it is placed first; the
+// rest are encoded in alphabetical order. Spaces are encoded as %20, not '+'.
+// Returns an empty string if no values are present.
+func encodeQuery(values url.Values, secretFirst bool) string {
+	if len(values) == 0 {
+		return ""
+	}
+
+	// Helper to run the standard encoder and then replace '+' with '%20'.
+	stdEncode := func(v url.Values) string {
+		enc := v.Encode()
+
+		return strings.ReplaceAll(enc, "+", "%20")
+	}
+
+	if !secretFirst {
+		return stdEncode(values)
+	}
+
+	// secretFirst: emit secret first (if present), then the rest alphabetically.
+	var parts []string
+
+	if secrets, ok := values["secret"]; ok {
+		// Avoid duplication by removing key from map before encoding the rest.
+		delete(values, "secret")
+
+		for _, v := range secrets {
+			tmp := url.Values{"secret": []string{v}}
+			parts = append(parts, stdEncode(tmp))
+		}
+	}
+
+	if rest := stdEncode(values); rest != "" {
+		parts = append(parts, rest)
+	}
+
+	return strings.Join(parts, "&")
 }

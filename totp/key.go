@@ -290,32 +290,36 @@ func (k *Key) String() string {
 // It re-generates the URI from the values stored in the Key object and will not
 // use the original URI.
 func (k *Key) URI() string {
-	queryVal := url.Values{}
-
-	queryVal.Set("issuer", k.Options.Issuer)
-	queryVal.Set("algorithm", k.Options.Algorithm.String())
-	queryVal.Set("digits", k.Options.Digits.String())
-	queryVal.Set("period", strconv.FormatUint(uint64(k.Options.Period), 10))
-
-	// fix #55 always prepend secret in URI unless the option is set to false
-	if k.Options.prependSecretInURI {
-		queryVal.Set("_secret", k.Secret.Base32()) // bring secret to the front
-	} else {
-		queryVal.Set("secret", k.Secret.Base32())
+	// Build query values, then encode using shared helper to unify encoding
+	// and ordering behavior. Spaces are encoded as %20 and 'secret' can be
+	// placed first depending on prependSecretInURI.
+	values := url.Values{
+		"algorithm": []string{k.Options.Algorithm.String()},
+		"digits":    []string{k.Options.Digits.String()},
+		"issuer":    []string{k.Options.Issuer},
+		"period":    []string{strconv.FormatUint(uint64(k.Options.Period), 10)},
+		"secret":    []string{k.Secret.Base32()},
 	}
 
-	//nolint:exhaustruct // other fields are left blank on purpose
-	urlOut := url.URL{
-		Scheme:   "otpauth",
-		Host:     "totp",
-		Path:     "/" + k.Options.Issuer + ":" + k.Options.AccountName,
-		RawQuery: queryVal.Encode(),
+	rawQuery := encodeQuery(values, k.Options.prependSecretInURI)
+
+	// Build label path with proper escaping. Keep the first ':' as separator.
+	// For safety and compatibility with GA examples, normalize any ':' inside
+	// label components to '.' before escaping to avoid ambiguity.
+	escapeLabel := func(s string) string {
+		normalized := strings.ReplaceAll(s, ":", ".")
+
+		return url.PathEscape(normalized)
 	}
 
-	uri := urlOut.String()
+	issuerRaw := k.Options.Issuer
+	accountRaw := k.Options.AccountName
+	pathEscaped := "/" + escapeLabel(issuerRaw) + ":" + escapeLabel(accountRaw)
 
-	if k.Options.prependSecretInURI {
-		uri = strings.Replace(uri, "_secret", "secret", 1)
+	// Compose the final URI manually to preserve the escaped colon within the path.
+	uri := "otpauth://totp" + pathEscaped
+	if rawQuery != "" {
+		uri += "?" + rawQuery
 	}
 
 	return uri
