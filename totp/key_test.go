@@ -453,3 +453,53 @@ func TestKey_secret_query_first_false(t *testing.T) {
 	require.Equal(t, expect, actual,
 		"URI should match the expected format with alphabetical query order")
 }
+
+// ----------------------------------------------------------------------------
+//  Issue #63: Escape label in the path of URI
+// ----------------------------------------------------------------------------
+
+// TestKey_URI_fix63_escape_label reproduces the problem where issuer/account
+// labels containing spaces or colon are not percent-encoded in the URI path.
+func TestKey_URI_fix63_escape_label(t *testing.T) {
+	t.Parallel()
+
+	// Baseline from an old Google Authenticator spec example
+	// * https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+	exampleURI := "otpauth://totp/ACME%20Co:john.doe@email.com?" +
+		"secret=HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ&" +
+		"algorithm=SHA1&" + "digits=6&" +
+		"issuer=ACME%20Co&" +
+		"period=30"
+
+	t.Run("parse example URI", func(t *testing.T) {
+		t.Parallel()
+
+		keyFromURI, err := GenerateKeyURI(exampleURI)
+		require.NoError(t, err, "failed to generate key from example URI")
+
+		expect := exampleURI
+		actual := keyFromURI.URI()
+
+		assert.Equal(t, expect, actual,
+			"URI should match the expected format")
+	})
+
+	t.Run("label_with_colon", func(t *testing.T) {
+		t.Parallel()
+
+		issuer := "ACME Co"
+		account := "john:doe@email.com"
+
+		key, err := GenerateKey(issuer, account)
+		require.NoError(t, err, "failed to generate key")
+
+		key.Secret, err = NewSecretBase32("HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ")
+		require.NoError(t, err, "failed to create new secret")
+
+		expect := exampleURI
+		actual := key.URI()
+
+		assert.Equal(t, expect, actual,
+			"URI should match the expected format")
+	})
+}
