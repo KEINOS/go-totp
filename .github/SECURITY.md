@@ -21,9 +21,10 @@ At a minimum, the following measures apply:
 
 > __Note__: Currently, Go 1.22 is the minimum supported version, which matches the minimum version of the dependent packages and linters. Depending on these versions, the minimum supported version may change in the future. Though, __we encourage you to use the latest version of Go__.
 
-## Update
+## Fail fast policy and update
 
 - We [check the latest version of `go.mod` every week](https://github.com/KEINOS/go-totp/blob/main/.github/workflows/weekly-update.yml) and update it when it has passed all tests.
+- We bump up the minimum supported Go version if the packages used in the project require it.
 
 ## Reporting a Vulnerability, Bugs and etc
 
