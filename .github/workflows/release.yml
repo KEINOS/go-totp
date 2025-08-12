@@ -1,0 +1,94 @@
+name: Release Docs Refresh
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-docs:
+    name: Trigger pkg.go.dev refresh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show tag info
+        run: |
+          echo "GITHUB_REF=${GITHUB_REF}"
+          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}"
+
+      - name: Check tag is semver-like
+        id: semver
+        shell: bash
+        run: |
+            # Check if the tag matches semantic versioning (e.g. v1.2.3)
+            if [[ "${GITHUB_REF_NAME}" =~ ^v[0-9]+(\.[0-9]+){1,2}([+-][0-9A-Za-z\.-]+)?$ ]]; then
+              echo "ok=true" >> $GITHUB_OUTPUT
+            else
+              echo "ok=false" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Exit if not version tag
+        if: steps.semver.outputs.ok != 'true'
+        run: |
+            # Skip workflow if tag is not semver-like
+            echo "Not a semver-like tag. Skipping refresh." && exit 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1'
+          check-latest: true
+
+      - name: Prime Go proxy via go list (with retry)
+        env:
+          GOPROXY: https://proxy.golang.org,direct
+        run: |
+            # Trigger Go proxy to index the new tag by fetching it (retry up to
+            # 8 times)
+            set -euxo pipefail
+            # Fetch the tagged module from the proxy to trigger indexing
+            for i in {1..8}; do
+              if go list -m -json github.com/KEINOS/go-totp@${GITHUB_REF_NAME} >/dev/null 2>&1; then
+                echo "go list succeeded on attempt $i"; break
+              fi
+              echo "go list failed (attempt $i). Retrying..." >&2
+              sleep 15
+            done
+
+      - name: Prime Go proxy via HTTP (info/mod) with retry
+        run: |
+            # Directly hit Go proxy endpoints to ensure module is available (retry
+            # up to 8 times)
+            set -euxo pipefail
+            base="https://proxy.golang.org/github.com/KEINOS/go-totp/@v"
+            for i in {1..8}; do
+              if curl -sSfL "${base}/${GITHUB_REF_NAME}.info" >/dev/null && curl -sSfI "${base}/${GITHUB_REF_NAME}.mod" >/dev/null; then
+                echo "proxy endpoints ok on attempt $i"; break
+              fi
+              echo "proxy endpoints not ready (attempt $i). Retrying..." >&2
+              sleep 15
+            done
+
+      - name: Touch checksum DB (sum.golang.org)
+        run: |
+            # Touch Go checksum DB to ensure checksums are indexed
+            set -euxo pipefail
+            curl -sSfL "https://sum.golang.org/lookup/github.com/KEINOS/go-totp@${GITHUB_REF_NAME}" | head -n 5 || true
+
+      - name: Warm pkg.go.dev pages (best-effort)
+        continue-on-error: true
+        run: |
+            # Warm up pkg.go.dev documentation pages for faster availability
+            # (retry up to 6 times)
+            set -euxo pipefail
+            for i in {1..6}; do
+              if curl -sSL "https://pkg.go.dev/github.com/KEINOS/go-totp" >/dev/null && \
+                 curl -sSL "https://pkg.go.dev/github.com/KEINOS/go-totp/totp" >/dev/null; then
+                echo "pkg.go.dev warmed on attempt $i"; break
+              fi
+              echo "pkg.go.dev not ready (attempt $i). Retrying..." >&2
+              sleep 15
+            done
