@@ -21,7 +21,8 @@ type Algorithm string
 
 // NewAlgorithmStr creates a new Algorithm object from a string that is used to
 // generate the passcode.
-// Choices of algo are:
+//
+// Available algorithms are:
 //
 //	MD5, SHA1, SHA256 and SHA512.
 func NewAlgorithmStr(algo string) (Algorithm, error) {
@@ -44,8 +45,9 @@ func NewAlgorithmStr(algo string) (Algorithm, error) {
 
 // NewAlgorithmID creates a new Algorithm object from an int.
 //
-// It is not an usual way to create an Algorithm object. It is used to convert
-// the ID of the algorithm to the Algorithm object for checking purposes.
+// This is not a typical way to create an Algorithm object via this method.
+// Its aim is to convert the ID of the algorithm to the Algorithm object mostly
+// for checking purposes.
 func NewAlgorithmID(algoID int) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"

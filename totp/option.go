@@ -84,17 +84,17 @@ func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context stri
 	}
 }
 
-// WithECDHKDF sets the userKDF, user-defined key derivation function, to derive
+// WithECDHKDF sets the user-defined key derivation function (userKDF), to derive
 // a TOTP secret key from an ECDH shared secret.
 //
 // The function must match the following signature:
 //
 //	func(secret, ctx []byte, outLen uint) ([]byte, error)
 //
-// Responsibility: The KDF must deterministically derive and return exactly
-// outLen bytes. If it cannot produce outLen bytes, it should return an error.
-// The ctx should be a stable, application-specific context string used for
-// domain separation to avoid key reuse across different purposes.
+// Responsibility: The implemented KDF must deterministically derive and return
+// exactly outLen bytes. If it cannot produce outLen bytes, it should return an
+// error. The ctx should be used as a salt or salt-like value during the key
+// derivation.
 func WithECDHKDF(userKDF func(secret, ctx []byte, outLen uint) ([]byte, error)) Option {
 	return func(opts *Options) error {
 		if opts == nil {
@@ -107,7 +107,8 @@ func WithECDHKDF(userKDF func(secret, ctx []byte, outLen uint) ([]byte, error)) 
 	}
 }
 
-// WithPeriod sets the number of seconds a TOTP hash is valid for (Default: 30 seconds).
+// WithPeriod sets the number of seconds a TOTP hash is valid for (Default: 30
+// seconds).
 func WithPeriod(period uint) Option {
 	return func(opts *Options) error {
 		if opts == nil {
@@ -133,8 +134,12 @@ func WithSecretSize(size uint) Option {
 	}
 }
 
-// WithSecretQueryFirst sets whether the secret should be the first query parameter in the URI.
-// When true (default), secret appears first: "?secret=...&algorithm=...".
+// WithSecretQueryFirst sets whether the secret should be the first query parameter
+// in the URI.
+//
+// When true (default), secret appears first: "?secret=...&algorithm=..." and other
+// parameters are sorted.
+//
 // When false, parameters are sorted alphabetically: "?algorithm=...&secret=...".
 func WithSecretQueryFirst(choice bool) Option {
 	return func(opts *Options) error {

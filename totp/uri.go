@@ -8,6 +8,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	base10    = 10
+	bitSize64 = 64
+)
+
 // ----------------------------------------------------------------------------
 //  Type: URI
 // ----------------------------------------------------------------------------
@@ -112,10 +117,8 @@ func (u URI) Digits() uint {
 	}
 
 	digitStr := parsedURI.Query().Get("digits")
-	base10 := 10
-	bitSize := 64
 
-	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize)
+	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize64)
 	if err == nil {
 		return uint(digitUint64)
 	}
@@ -219,10 +222,8 @@ func (u URI) Period() uint {
 	}
 
 	periodStr := parsedURI.Query().Get("period")
-	base10 := 10
-	bitSize := 64
 
-	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize)
+	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize64)
 	if err == nil {
 		return uint(periodUint64)
 	}
