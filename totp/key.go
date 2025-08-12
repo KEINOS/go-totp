@@ -116,7 +116,7 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 	return key, nil
 }
 
-// GenerateKeyPEM creates a new Key object from a PEM formatted string.
+// GenerateKeyPEM creates a Key from a PEM-formatted string.
 //
 // Deprecated: Use GenKeyFromPEM() instead. This function will be removed in
 // the next major release. Currently it is an alias to GenKeyFromPEM(). For
@@ -125,7 +125,7 @@ func GenerateKeyPEM(pemKey string) (*Key, error) {
 	return GenKeyFromPEM(pemKey)
 }
 
-// GenKeyFromPEM creates a new Key object from a PEM formatted string.
+// GenKeyFromPEM creates a Key from a PEM-formatted string.
 func GenKeyFromPEM(pemKey string) (*Key, error) {
 	block, rest := pem.Decode([]byte(pemKey))
 
@@ -158,7 +158,7 @@ func GenKeyFromPEM(pemKey string) (*Key, error) {
 	return nil, errors.New("failed to decode PEM block containing TOTP secret key")
 }
 
-// GenerateKeyURI creates a new Key object from an TOTP uri/url.
+// GenerateKeyURI creates a Key from a TOTP URI.
 //
 // Deprecated: Use GenKeyFromURI() instead. This function will be removed in
 // the next major release. Currently it is an alias to GenKeyFromURI(). For
@@ -167,7 +167,7 @@ func GenerateKeyURI(uri string) (*Key, error) {
 	return GenKeyFromURI(uri)
 }
 
-// GenKeyFromURI creates a new Key object from an TOTP uri/url.
+// GenKeyFromURI creates a Key from a TOTP URI.
 // The URL format is documented here:
 //
 //	https://github.com/google/google-authenticator/wiki/Key-Uri-Format
@@ -240,7 +240,7 @@ func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
 	)
 }
 
-// PEM returns the key in PEM formatted string.
+// PEM returns the key as a PEM-formatted string.
 func (k *Key) PEM() (string, error) {
 	out := pemEncodeToMemory(&pem.Block{
 		Type: BlockTypeTOTP,
@@ -278,7 +278,7 @@ func (k *Key) QRCode(fixLevel FixLevel) (*QRCode, error) {
 	return qrCode, nil
 }
 
-// String returns a string representation of the key in URI format.
+// String returns the key in URI format.
 //
 // It is an implementation of the fmt.Stringer interface.
 func (k *Key) String() string {

@@ -80,7 +80,7 @@ func (s Secret) Base62() string {
 }
 
 // Base64 returns the secret as a base64 encoded string with padding (RFC 4648).
-// This encoding is used in PEM format exports.
+// This encoding is used in PEM exports.
 func (s Secret) Base64() string {
 	return base64.StdEncoding.EncodeToString(s)
 }
@@ -91,8 +91,7 @@ func (s Secret) Bytes() []byte {
 	return s
 }
 
-// String is an implementation of the Stringer interface. It is an alias for
-// Base32().
+// String implements fmt.Stringer and returns Base32 encoding.
 func (s Secret) String() string {
 	return s.Base32()
 }

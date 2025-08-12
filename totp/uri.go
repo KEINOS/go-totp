@@ -116,7 +116,9 @@ func (u URI) Check() error {
 	return nil
 }
 
-// Digits returns the number of digits a TOTP hash should have from the URI query.
+// Digits returns the number of digits a TOTP hash should have from the URI
+// query. Returns 0 when the value is missing, invalid, or out of the accepted
+// range.
 func (u URI) Digits() uint {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
@@ -229,7 +231,7 @@ func (u URI) Label() string {
 }
 
 // Period returns the number of seconds a TOTP hash is valid for from the URI.
-// If the period is not set or the URL is invalid, it returns 0.
+// Returns 0 when the value is missing, invalid, or out of the accepted range.
 func (u URI) Period() uint {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {

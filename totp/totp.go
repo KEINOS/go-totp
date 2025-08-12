@@ -55,8 +55,7 @@ func Validate(passcode, secret string, options Options) bool {
 	return ValidateCustom(passcode, secret, validationTime, options)
 }
 
-// ValidateCustom is similar to Validate() but allows you to specify the time to
-// validate the passcode.
+// ValidateCustom is like Validate but allows a custom validation time.
 func ValidateCustom(passcode, secret string, validationTime time.Time, options Options) bool {
 	isValid, err := totp.ValidateCustom(
 		passcode,

@@ -19,12 +19,8 @@ type Algorithm string
 //  Constructor
 // ----------------------------------------------------------------------------
 
-// NewAlgorithmStr creates a new Algorithm object from a string that is used to
-// generate the passcode.
-//
-// Available algorithms are:
-//
-//	MD5, SHA1, SHA256 and SHA512.
+// NewAlgorithmStr creates an Algorithm value from its name.
+// Available algorithms: MD5, SHA1, SHA256, SHA512.
 func NewAlgorithmStr(algo string) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"
@@ -43,11 +39,8 @@ func NewAlgorithmStr(algo string) (Algorithm, error) {
 	return "", errors.New("unsupported algorithm. it should be MD5, SHA1, SHA256 or SHA512")
 }
 
-// NewAlgorithmID creates a new Algorithm object from an int.
-//
-// This is not a typical way to create an Algorithm object via this method.
-// Its aim is to convert the ID of the algorithm to the Algorithm object mostly
-// for checking purposes.
+// NewAlgorithmID creates an Algorithm from its numeric ID used by the
+// underlying library. This constructor is mainly for conversions and checks.
 func NewAlgorithmID(algoID int) (Algorithm, error) {
 	const (
 		cMD5    = "MD5"
@@ -74,8 +67,8 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 //  Methods
 // ----------------------------------------------------------------------------
 
-// ID returns the ID of the algorithm which is the same int value as the
-// original OTP library. Undefined ID will return -1.
+// ID returns the numeric ID used by the original OTP library.
+// Returns -1 for undefined/unsupported algorithms.
 func (algo Algorithm) ID() int {
 	const (
 		cMD5            = "MD5"
@@ -109,10 +102,8 @@ func (algo Algorithm) IsSupported() bool {
 	return false
 }
 
-// OTPAlgorithm is similar to ID() but returns in the original type of the OTP
-// library.
-//
-// Undefined Algorithm type will always return -1 (see issue #6).
+// OTPAlgorithm converts Algorithm to otp.Algorithm.
+// Returns otp.Algorithm(-1) for unsupported algorithms (see issue #6).
 func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
 	switch algo {
 	case "MD5":

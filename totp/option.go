@@ -10,8 +10,8 @@ import (
 //  Type: Option
 // ============================================================================
 
-// Option is a function that applies an option to the given Options.
-// It should return an error if the option is nil or invalid.
+// Option applies a modification to Options. It should return an error when
+// opts is nil or the argument is invalid.
 type Option func(*Options) error
 
 const errNilOptions = "options is nil"
@@ -37,8 +37,8 @@ func WithAlgorithm(algo Algorithm) Option {
 	}
 }
 
-// WithDigits sets the Digits to request TOTP code. Choices are DigitsSix or
-// DigitsEight (Default: DigitsSix).
+// WithDigits sets the number of digits for the TOTP code (DigitsSix or
+// DigitsEight). Default is DigitsSix.
 func WithDigits(digits Digits) Option {
 	return func(opts *Options) error {
 		if opts == nil {
@@ -51,8 +51,8 @@ func WithDigits(digits Digits) Option {
 	}
 }
 
-// WithECDH sets a hashed ECDH shared secret as the TOTP secret from the given
-// ECDH private key and the correspondent's ECDH public key.
+// WithECDH sets a hashed ECDH shared secret as the TOTP secret using the given
+// local private key and the peer's public key.
 //
 // Important:
 //
@@ -84,8 +84,8 @@ func WithECDH(localKey *ecdh.PrivateKey, remoteKey *ecdh.PublicKey, context stri
 	}
 }
 
-// WithECDHKDF sets the user-defined key derivation function (userKDF), to derive
-// a TOTP secret key from an ECDH shared secret.
+// WithECDHKDF sets a custom key-derivation function (KDF) to derive a TOTP
+// secret from an ECDH shared secret.
 //
 // The function must match the following signature:
 //
