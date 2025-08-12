@@ -8,6 +8,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	base10    = 10
+	bitSize32 = 32
+	bitSize64 = 64
+
+	// TOTP validation constants.
+	minDigits = 1     // Allow very small digits for testing purposes
+	maxDigits = 20    // Allow larger digits for flexibility
+	minPeriod = 1     // Allow very small periods for testing purposes
+	maxPeriod = 86400 // Maximum practical period (24 hours)
+)
+
 // ----------------------------------------------------------------------------
 //  Type: URI
 // ----------------------------------------------------------------------------
@@ -104,7 +116,9 @@ func (u URI) Check() error {
 	return nil
 }
 
-// Digits returns the number of digits a TOTP hash should have from the URI query.
+// Digits returns the number of digits a TOTP hash should have from the URI
+// query. Returns 0 when the value is missing, invalid, or out of the accepted
+// range.
 func (u URI) Digits() uint {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
@@ -112,15 +126,21 @@ func (u URI) Digits() uint {
 	}
 
 	digitStr := parsedURI.Query().Get("digits")
-	base10 := 10
-	bitSize := 64
 
-	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize)
-	if err == nil {
-		return uint(digitUint64)
+	// Parse with 32-bit size to prevent overflow on 32-bit systems
+	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize32)
+	if err != nil {
+		return 0
 	}
 
-	return 0
+	digits := uint(digitUint64)
+
+	// Validate range for TOTP context
+	if digits < minDigits || digits > maxDigits {
+		return 0
+	}
+
+	return digits
 }
 
 // Host returns the host name from the URI. This should be `totp`.
@@ -135,10 +155,9 @@ func (u URI) Host() string {
 
 // Issuer returns the issuer from the URI.
 //
-// It prefers the query parameter "issuer" when present, otherwise falls back
-// to the issuer parsed from the path label (see IssuerFromPath()). If both are
-// present and equal, that value is returned. If both are present but differ,
-// an empty string is returned to indicate ambiguity.
+// It requires that the issuer is present in both the path label and the query
+// parameter, and that they match. If they do not, an empty string is returned
+// to indicate an invalid or ambiguous issuer.
 func (u URI) Issuer() string {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
@@ -148,13 +167,8 @@ func (u URI) Issuer() string {
 	issuerPath := u.IssuerFromPath()
 	issuerQuery := parsedURI.Query().Get("issuer")
 
-	// Search issuer from the query string
-	switch {
-	case issuerQuery != "" && issuerPath == "":
-		return issuerQuery
-	case issuerQuery == "" && issuerPath != "":
-		return issuerPath
-	case issuerQuery == issuerPath:
+	// Both must exist and match.
+	if issuerPath != "" && issuerQuery != "" && issuerPath == issuerQuery {
 		return issuerQuery
 	}
 
@@ -217,7 +231,7 @@ func (u URI) Label() string {
 }
 
 // Period returns the number of seconds a TOTP hash is valid for from the URI.
-// If the period is not set or the URL is invalid, it returns 0.
+// Returns 0 when the value is missing, invalid, or out of the accepted range.
 func (u URI) Period() uint {
 	parsedURI, err := url.Parse(string(u))
 	if err != nil {
@@ -225,15 +239,21 @@ func (u URI) Period() uint {
 	}
 
 	periodStr := parsedURI.Query().Get("period")
-	base10 := 10
-	bitSize := 64
 
-	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize)
-	if err == nil {
-		return uint(periodUint64)
+	// Parse with 32-bit size to prevent overflow on 32-bit systems
+	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize32)
+	if err != nil {
+		return 0
 	}
 
-	return 0
+	period := uint(periodUint64)
+
+	// Validate range for TOTP context
+	if period < minPeriod || period > maxPeriod {
+		return 0
+	}
+
+	return period
 }
 
 // Parameters returns the query component of the URI without the leading '?'.

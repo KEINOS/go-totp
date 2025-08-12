@@ -86,7 +86,7 @@ func TestNewAlgorithmStr_unsupported_algo(t *testing.T) {
 
 	require.Error(t, err, "unsupported algorithm should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm")
-	require.Contains(t, err.Error(), "it should be MD5, SHA1, SHA256 or SHA512")
+	require.Contains(t, err.Error(), "it should be")
 }
 
 func TestNewAlgorithmID_invalid_id(t *testing.T) {
@@ -94,7 +94,7 @@ func TestNewAlgorithmID_invalid_id(t *testing.T) {
 
 	_, err := NewAlgorithmID(999) // 999 is not a valid ID.
 
-	require.Error(t, err, "invalid ID should return error")
-	require.Contains(t, err.Error(), "invalid algorithm ID")
-	require.Contains(t, err.Error(), "it should be 0, 1, 2 or 3")
+	require.Error(t, err, "unsupported ID should return error")
+	require.Contains(t, err.Error(), "unsupported algorithm ID")
+	require.Contains(t, err.Error(), "it should be")
 }

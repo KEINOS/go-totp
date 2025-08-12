@@ -3,7 +3,7 @@
 [![go1.24+](https://img.shields.io/badge/Go-1.24+-blue?logo=go)](https://github.com/KEINOS/go-totp/blob/main/.github/workflows/unit-tests.yml#L81 "Supported versions")
 [![Go Reference](https://pkg.go.dev/badge/github.com/KEINOS/go-totp.svg)](https://pkg.go.dev/github.com/KEINOS/go-totp/totp "View document")
 
-`go-totp` is a simple Go package to implement [Timebased-One-Time-Password](https://en.wikipedia.org/wiki/Time-based_one-time_password) authentication functionality, a.k.a. `TOTP`, to the Go app.
+`go-totp` is a simple Go package to implement [Time-based One-Time Password](https://en.wikipedia.org/wiki/Time-based_one-time_password) authentication functionality, a.k.a. `TOTP`, to the Go app.
 
 As an optional feature, this package __supports [ECDH](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman) (Elliptic-Curve Diffie-Hellman) key agreement protocol__, where public keys are exchanged between two parties to obtain a common TOTP passcode.
 
@@ -16,12 +16,15 @@ As an optional feature, this package __supports [ECDH](https://en.wikipedia.org/
 ```shellsession
 $ # Install module
 $ go get "github.com/KEINOS/go-totp"
+...
 ```
 
 ```go
 // Use package
 import "github.com/KEINOS/go-totp/totp"
 ```
+
+- [Example app](https://github.com/KEINOS/go-totp/tree/main/_example/simple1)
 
 ### Basic Usage
 
@@ -46,7 +49,7 @@ func Example() {
     fmt.Println("- Skew (time tolerance):", key.Options.Skew)
     fmt.Println("- Digits:", key.Options.Digits)
 
-    // Generate 6 digits passcode (valid for 30 seconds)
+    // Generate a 6-digit passcode (valid for 30 seconds)
     passcode, err := key.PassCode()
     if err != nil {
         log.Fatal(err)
@@ -69,12 +72,12 @@ func Example() {
 
 - [View it online](https://go.dev/play/p/s7bAGoLY25R) @ Go Playground
 
+### Major methods of totp.Key object
+
 ```go
 //  * You should handle the error in your code.
 
-// ----------------------------------------------------------------------------
 //  Generate a new secret key with custom options
-// ----------------------------------------------------------------------------
 key, err := totp.GenerateKey(Issuer, AccountName,
     // Optional:
     totp.WithAlgorithm(totp.Algorithm("SHA256")),
@@ -84,10 +87,6 @@ key, err := totp.GenerateKey(Issuer, AccountName,
     totp.WithSkew(5),
     totp.WithDigits(totp.DigitsEight),
 )
-
-// ----------------------------------------------------------------------------
-//  Major methods of totp.Key object
-// ----------------------------------------------------------------------------
 
 // Generate the current passcode.
 passcode, err := key.PassCode()
@@ -193,6 +192,18 @@ This feature is useful when a __shared but ephemeral/volatile secret value (a co
 For example, a time-based shared [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) for hashing or an additional value to generate a shared secret key for [symmetric encryption](https://en.wikipedia.org/wiki/Symmetric-key_algorithm).
 
 The values expire, but the possibilities are endless.
+
+## FAQ
+
+1. "The generated TOTP codes (passcodes) are not working with my authenticator app."
+    - First, fix device time via NTP. Ensure that the time on your device is synchronized with a reliable time source. TOTP is time-based and requires accurate timekeeping.
+    - Consider increasing the skew value (time tolerance) in your TOTP options but also note that it may reduce security.
+2. "The authenticator app is displaying 8 digits."
+   - Check the digits option in your TOTP configuration and the URI generated. If the generated QR code does not contain the digits parameter, some apps may default to 8 digits instead of 6.
+3. "Can't read the generated QR code in my authenticator app."
+   - Ensure that the QR code image is not blurry (distorted or resized) and has enough padding/margin around the QR code image.
+   - Try using a different QR code settings such as error correction level.
+   - Try reading with other Authenticator apps and if it's still not readable then ensure that the URI and/or the QR code does not contain any line breaks.
 
 ## Contributing
 

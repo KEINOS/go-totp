@@ -2,8 +2,7 @@ package totp
 
 import "github.com/boombuler/barcode/qr"
 
-// FixLevel is the error correction level for QR code. Use `FixLevel*` constants
-// to set the level.
+// FixLevel represents the QR code error correction level. Use FixLevel* constants.
 type FixLevel byte
 
 // Error correction level for QR code.

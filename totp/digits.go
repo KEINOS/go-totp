@@ -10,8 +10,7 @@ import (
 //  Type: Digits
 // ----------------------------------------------------------------------------
 
-// Digits represents the number of digits present in the user's OTP passcode.
-// Six and Eight are the most common values.
+// Digits represents the number of digits in the OTP code.
 type Digits uint
 
 const (

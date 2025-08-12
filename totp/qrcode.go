@@ -10,15 +10,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// QRCode is a struct that holds the information to create QR code image.
+// QRCode holds information to generate a QR code image.
 type QRCode struct {
-	URI   URI      // URI object to be encoded to QR code image.
-	Level FixLevel // Level is the error correction level for the QR code.
+	URI   URI      // URI to encode.
+	Level FixLevel // Error correction level.
 }
 
-// Image returns an image.Image object of the QR code.
-// Note: The underlying library cannot scale to images smaller than 49x49.
-// Passing smaller sizes will result in an error from the scaler.
+// Image returns the QR code as image.Image.
+// Note: The underlying library cannot scale images smaller than 49x49.
+// Passing smaller sizes will return a scaling error.
 func (q *QRCode) Image(width, height int) (image.Image, error) {
 	uri := q.URI.String()
 

@@ -165,14 +165,16 @@ func TestURI_Issuer_goledn(t *testing.T) {
 		issuer string
 		msg    string
 	}{
-		{"otpauth://totp/Example.com:", "Example.com",
-			"label following colon should treat as issuer"},
+		{"otpauth://totp/Example.com:?issuer=Example.com", "Example.com",
+			"issuer should be parsed when both label and query match"},
+		{"otpauth://totp/Example.com:", "",
+			"label following colon should be invalid if query is missing"},
 		{"otpauth://totp/alice@example.com?foo=bar", "",
 			"missing colon should treat as account name"},
 		{"otpauth://totp/alice@example.com?issuer=Example.org",
-			"Example.org", "issuer in query should be used"},
-		{"otpauth://totp/:?issuer=Example.org", "Example.org",
-			"issuer in query should be used"},
+			"", "issuer in query should be invalid if label is missing"},
+		{"otpauth://totp/:?issuer=Example.org", "",
+			"issuer in query should be invalid if label is empty"},
 	} {
 		uri := URI(test.uri)
 		expect := test.issuer
@@ -329,6 +331,16 @@ func TestURI_Label_golden(t *testing.T) {
 			uri:    "otpauth://totp/?algorithm=SHA1",
 			expect: "",
 		},
+		{
+			name:   "Provider1:Alice%20Smith",
+			uri:    "otpauth://totp/Provider1:Alice%20Smith?secret=JBSWY3DPEHPK3PXP&issuer=Provider1",
+			expect: "Provider1:Alice Smith",
+		},
+		{
+			name:   "Big%20Corporation%3A%20alice%40bigco.com",
+			uri:    "otpauth://totp/Big%20Corporation%3A%20alice%40bigco.com?secret=JBSWY3DPEHPK3PXP&issuer=Big%20Corporation",
+			expect: "Big Corporation: alice@bigco.com",
+		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
@@ -457,6 +469,226 @@ func TestURI_Parameters_empty_values(t *testing.T) {
 				"Parameters(false) should be empty when no query params exist")
 			require.Empty(t, u.Parameters(true),
 				"Parameters(true) should be empty when no query params exist")
+		})
+	}
+}
+
+// ----------------------------------------------------------------------------
+//  Tests for potential integer overflow issues
+// ----------------------------------------------------------------------------
+
+// TestURI_Digits_overflow tests potential integer overflow vulnerability
+// when converting uint64 to uint without bounds checking.
+func TestURI_Digits_overflow(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		digits string
+		expect uint
+		reason string
+	}{
+		{
+			name:   "normal case",
+			digits: "6",
+			expect: 6,
+			reason: "valid digits should be parsed correctly",
+		},
+		{
+			name:   "maximum valid digits",
+			digits: "8",
+			expect: 8,
+			reason: "8 digits is the maximum commonly supported",
+		},
+		{
+			name:   "empty",
+			digits: "",
+			expect: 0,
+			reason: "empty digits should return 0",
+		},
+		{
+			name:   "invalid",
+			digits: "abc",
+			expect: 0,
+			reason: "non-numeric digits should return 0",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			uri := "otpauth://totp/Example.com:alice@example.com?digits=" + testCase.digits
+			u := NewURI(uri)
+			actual := u.Digits()
+
+			require.Equal(t, testCase.expect, actual, testCase.reason)
+		})
+	}
+}
+
+// TestURI_Digits_overflow_edge_cases tests edge cases for digits overflow.
+func TestURI_Digits_overflow_edge_cases(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		digits string
+		expect uint
+		reason string
+	}{
+		{
+			name:   "uint32 max value",
+			digits: "4294967295", // math.MaxUint32
+			expect: 0,
+			reason: "values larger than reasonable TOTP digits should be rejected",
+		},
+		{
+			name:   "uint32 max plus one",
+			digits: "4294967296", // math.MaxUint32 + 1
+			expect: 0,
+			reason: "values that would overflow on 32-bit systems should be rejected",
+		},
+		{
+			name:   "very large value",
+			digits: "18446744073709551615", // math.MaxUint64
+			expect: 0,
+			reason: "extremely large values should be rejected",
+		},
+		{
+			name:   "too small",
+			digits: "0",
+			expect: 0,
+			reason: "0 digits is invalid for TOTP",
+		},
+		{
+			name:   "too large",
+			digits: "21",
+			expect: 0,
+			reason: "more than 20 digits is impractical for TOTP",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			uri := "otpauth://totp/Example.com:alice@example.com?digits=" + testCase.digits
+			u := NewURI(uri)
+			actual := u.Digits()
+
+			require.Equal(t, testCase.expect, actual, testCase.reason)
+		})
+	}
+}
+
+// TestURI_Period_overflow tests potential integer overflow vulnerability
+// when converting uint64 to uint without bounds checking.
+func TestURI_Period_overflow(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		period string
+		expect uint
+		reason string
+	}{
+		{
+			name:   "normal case",
+			period: "30",
+			expect: 30,
+			reason: "standard 30-second period should be parsed correctly",
+		},
+		{
+			name:   "minimum reasonable period",
+			period: "15",
+			expect: 15,
+			reason: "15 seconds is a reasonable minimum for TOTP",
+		},
+		{
+			name:   "maximum reasonable period",
+			period: "300",
+			expect: 300,
+			reason: "5 minutes is a reasonable maximum for TOTP",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			uri := "otpauth://totp/Example.com:alice@example.com?period=" + testCase.period
+			u := NewURI(uri)
+			actual := u.Period()
+
+			require.Equal(t, testCase.expect, actual, testCase.reason)
+		})
+	}
+}
+
+// TestURI_Period_overflow_edge_cases tests edge cases for period overflow.
+func TestURI_Period_overflow_edge_cases(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		period string
+		expect uint
+		reason string
+	}{
+		{
+			name:   "uint32 max value",
+			period: "4294967295", // math.MaxUint32
+			expect: 0,
+			reason: "values larger than reasonable TOTP period should be rejected",
+		},
+		{
+			name:   "uint32 max plus one",
+			period: "4294967296", // math.MaxUint32 + 1
+			expect: 0,
+			reason: "values that would overflow on 32-bit systems should be rejected",
+		},
+		{
+			name:   "very large value",
+			period: "18446744073709551615", // math.MaxUint64
+			expect: 0,
+			reason: "extremely large values should be rejected",
+		},
+		{
+			name:   "too small",
+			period: "0",
+			expect: 0,
+			reason: "0 seconds is invalid for TOTP",
+		},
+		{
+			name:   "too large",
+			period: "86401",
+			expect: 0,
+			reason: "more than 24 hours is impractical for TOTP",
+		},
+		{
+			name:   "empty",
+			period: "",
+			expect: 0,
+			reason: "empty period should return 0",
+		},
+		{
+			name:   "invalid",
+			period: "xyz",
+			expect: 0,
+			reason: "non-numeric period should return 0",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			uri := "otpauth://totp/Example.com:alice@example.com?period=" + testCase.period
+			u := NewURI(uri)
+			actual := u.Period()
+
+			require.Equal(t, testCase.expect, actual, testCase.reason)
 		})
 	}
 }
