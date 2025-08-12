@@ -60,6 +60,40 @@ func Example() {
 	// * Validation result: Passcode is valid
 }
 
+// This example demonstrates how to generate a new secret key with `GenerateKeyCustom`.
+// But it is recommended to use the `GenerateKey` function with `With*` options.
+func Example_advanced() {
+	// Options to generate a new key. The secret will be generated randomly.
+	opts := totp.Options{
+		Issuer:      "Example.com",
+		AccountName: "alice@example.com",
+		Algorithm:   totp.Algorithm("SHA1"), // Choices are: MD5, SHA1, SHA256 and SHA512
+		Period:      60,                     // Validity period in seconds
+		SecretSize:  20,                     // Secret key size in bytes
+		Skew:        0,                      // Number of periods before or after the current time to allow.
+		Digits:      totp.Digits(8),         // Choices are: 6 and 8
+	}
+
+	// Generate a new secret key
+	key, err := totp.GenerateKeyCustom(opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate 8 digits passcode that are valid for 60 seconds (see options above)
+	passcode, err := key.PassCode()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate the passcode
+	if key.Validate(passcode) {
+		fmt.Println("Passcode is valid")
+	}
+	//
+	// Output: Passcode is valid
+}
+
 // This example demonstrates how to generate a new secret key with custom options
 // and validate the passcode.
 //
@@ -96,36 +130,30 @@ func Example_custom() {
 	// Output: Passcode is valid
 }
 
-func Example_advanced() {
-	// Options to generate a new key. The secret will be generated randomly.
-	opts := totp.Options{
-		Issuer:      "Example.com",
-		AccountName: "alice@example.com",
-		Algorithm:   totp.Algorithm("SHA1"), // Choices are: MD5, SHA1, SHA256 and SHA512
-		Period:      60,                     // Validity period in seconds
-		SecretSize:  20,                     // Secret key size in bytes
-		Skew:        0,                      // Number of periods before or after the current time to allow.
-		Digits:      totp.Digits(8),         // Choices are: 6 and 8
-	}
+// As of v0.3.0, the "totp.Key.URI()" method returns the URI string with the
+// "secret" query parameter first by default.
+//
+// This is due to avoid a niche reading error bug of Google Authenticator (#55).
+// QR Code generated with other libraries that uses an old encoding method, Google
+// Authenticator fails to read if the URI in the QR Code ends with a "secret" query
+// parameter.
+//
+//nolint:lll // exceeding the maximum line length in the output is intentional
+func Example_secret_param_first() {
+	// note the order of the query parameters
+	origin := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
+		"period=60&issuer=Example.com&digits=12&" +
+		"secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3"
 
-	// Generate a new secret key
-	key, err := totp.GenerateKeyCustom(opts)
+	key, err := totp.GenKeyFromURI(origin)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Generate 8 digits passcode that are valid for 60 seconds (see options above)
-	passcode, err := key.PassCode()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Validate the passcode
-	if key.Validate(passcode) {
-		fmt.Println("Passcode is valid")
-	}
+	fmt.Println(key.URI())
 	//
-	// Output: Passcode is valid
+	// Output:
+	// otpauth://totp/Example.com:alice@example.com?secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3&algorithm=SHA1&digits=12&issuer=Example.com&period=60
 }
 
 // ============================================================================
