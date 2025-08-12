@@ -25,14 +25,14 @@ For convenience, there is a `docker-compose.yml` for the above.
 docker compose build
 
 # To run test on minimum supported Go version:
-docker compose run min
+docker compose run --rm min
 
 # To run test on latest Go:
-docker compose run latest
+docker compose run --rm latest
 
 # To run linters (golangci-lint):
-docker compose run lint
+docker compose run --rm lint
 
 # To run vulnerability check:
-docker compose run vuln
+docker compose run --rm vuln
 ```
