@@ -10,7 +10,14 @@ import (
 
 const (
 	base10    = 10
+	bitSize32 = 32
 	bitSize64 = 64
+
+	// TOTP validation constants.
+	minDigits = 1     // Allow very small digits for testing purposes
+	maxDigits = 20    // Allow larger digits for flexibility
+	minPeriod = 1     // Allow very small periods for testing purposes
+	maxPeriod = 86400 // Maximum practical period (24 hours)
 )
 
 // ----------------------------------------------------------------------------
@@ -118,12 +125,20 @@ func (u URI) Digits() uint {
 
 	digitStr := parsedURI.Query().Get("digits")
 
-	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize64)
-	if err == nil {
-		return uint(digitUint64)
+	// Parse with 32-bit size to prevent overflow on 32-bit systems
+	digitUint64, err := strconv.ParseUint(digitStr, base10, bitSize32)
+	if err != nil {
+		return 0
 	}
 
-	return 0
+	digits := uint(digitUint64)
+
+	// Validate range for TOTP context
+	if digits < minDigits || digits > maxDigits {
+		return 0
+	}
+
+	return digits
 }
 
 // Host returns the host name from the URI. This should be `totp`.
@@ -223,12 +238,20 @@ func (u URI) Period() uint {
 
 	periodStr := parsedURI.Query().Get("period")
 
-	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize64)
-	if err == nil {
-		return uint(periodUint64)
+	// Parse with 32-bit size to prevent overflow on 32-bit systems
+	periodUint64, err := strconv.ParseUint(periodStr, base10, bitSize32)
+	if err != nil {
+		return 0
 	}
 
-	return 0
+	period := uint(periodUint64)
+
+	// Validate range for TOTP context
+	if period < minPeriod || period > maxPeriod {
+		return 0
+	}
+
+	return period
 }
 
 // Parameters returns the query component of the URI without the leading '?'.
