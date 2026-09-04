@@ -14,38 +14,31 @@
 #     * You need add the "repo" scope to the token but no more.
 # =============================================================================
 name: Weekly Update
-
 on:
   workflow_dispatch:
   schedule:
     # Runs at 19:30 UTC on Sun (JST: AM 04:30 on every Monday)
     - cron: '30 19 * * SUN'
-
 jobs:
   automated_build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v4.4.0
       - name: Update go.mod and go.sum min Go ver env
         run: |
           set -eu
           docker compose run tidy
-
       - name: Run tests
         # Test only with the latest version of Go. Since on PR, the CIs will
         # run on all Go versions.
         run: |
           set -eu
           docker compose run latest
-
       - name: Create Pull Request on Change
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v4.2.4
         with:
-            token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
