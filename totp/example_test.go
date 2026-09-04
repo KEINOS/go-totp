@@ -545,6 +545,7 @@ func ExampleKey_PEM() {
 	// -----END TOTP SECRET KEY-----
 }
 
+//nolint:funlen
 func ExampleKey_QRCode() {
 	// Appending '&' at the end of the URI prevents the bug of Google
 	// Authenticator (iPhone) reading the QR code incorrectly.
@@ -570,7 +571,6 @@ func ExampleKey_QRCode() {
 	}
 
 	actual := hex.EncodeToString(pngImage)
-	//nolint:lll // long line is intentional
 	expect := `89504e470d0a1a0a0000000d4948445200000064000000641000000000051` +
 		`916cb000004ad49444154789ce459c19623390c827df9ff5f660fd39a42587632c7` +
 		`76c8c13242aa117e4ea5775f12aec00b206bb3a2c624674eeaeba499f089deb9d42` +
