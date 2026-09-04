@@ -330,7 +330,7 @@ func decodeQRCodeWithGozxing(t *testing.T, pngData []byte) string {
 	reader := qrcode.NewQRCodeReader()
 
 	// Try decoding with different hint configurations for better reliability
-	hintConfigs := []map[gozxing.DecodeHintType]interface{}{
+	hintConfigs := []map[gozxing.DecodeHintType]any{
 		// First try without hints (default behavior)
 		nil,
 		// Try with character set hint

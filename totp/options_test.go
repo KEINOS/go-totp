@@ -49,7 +49,7 @@ func TestOptionKDFDefault_invalid_length(t *testing.T) {
 		t.Parallel()
 
 		negativeLen := (int)(-8)
-		//nolint:gosec // overflow conversion int -> uint is intentional
+
 		outLen := uint(negativeLen)
 		newSecret, err := OptionKDFDefault(origSecret, ctx, outLen)
 

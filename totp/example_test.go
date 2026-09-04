@@ -736,12 +736,9 @@ func ExampleOptions_SetDefault() {
 func ExampleOptions() {
 	// You may instantiate Options directly but it's recommended to use
 	// NewOptions() for convenience.
-	//
-	//nolint:exhaustruct // missing fields allowed due to be an example
-	options := totp.Options{
-		Issuer:      "Example.com",
-		AccountName: "alice@example.com",
-	}
+	options := new(totp.Options)
+	options.Issuer = "Example.com"
+	options.AccountName = "alice@example.com"
 
 	/* List all exposed options and their values */
 	fmt.Printf("Issuer: \"%v\"\n", options.Issuer)

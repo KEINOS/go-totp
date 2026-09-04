@@ -133,7 +133,7 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 		return origOtp.NewKeyFromURL(url)
 	}
 
-	//nolint:exhaustruct // allow missing fields
+	//nolint:exhaustruct_v5 // allow missing fields
 	opt := Options{
 		Issuer:      "Example.com",
 		AccountName: "alice@example.com",
@@ -293,7 +293,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 func TestKey_QRCode_bad_fix_level(t *testing.T) {
 	t.Parallel()
 
-	//nolint:exhaustruct // missing fields are not required for this test
+	//nolint:exhaustruct_v5 // missing fields are not required for this test
 	key := Key{}
 
 	imgQRCode, err := key.QRCode(FixLevel(100))
@@ -321,7 +321,7 @@ func TestKey_PEM(t *testing.T) {
 		return nil
 	}
 
-	//nolint:exhaustruct // disable exhaust struct linter due to test
+	//nolint:exhaustruct_v5 // disable exhaust struct linter due to test
 	key := Key{}
 
 	pemOut, err := key.PEM()
@@ -349,8 +349,9 @@ func TestKey_skew_as_one(t *testing.T) {
 	numValid := 0
 	numIterations := 10
 
-	if timeSleep > uint(math.MaxInt) {
-		t.Fatalf("output length too large: %d", timeSleep)
+	if timeSleep > math.MaxInt64 {
+		t.Logf("timeSleep too large: %d", timeSleep)
+		timeSleep = math.MaxInt64
 	}
 
 	// If skew is set to 0, the validation fails 60-70% of the time.

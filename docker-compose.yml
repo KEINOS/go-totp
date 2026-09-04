@@ -1,7 +1,13 @@
 # =============================================================================
-#  Docker Compose file for testing on Go versions 1.15 to the latest.
+#  Docker Compose file for testing on Go versions.
 # =============================================================================
-# It is recommended to run specifying a specific service and not at once.
+#  The minimum supported Go version is specified in the `min` service. Which is
+#  equivalent to the Go version specified in the `go.mod` file.
+#  The version of toolchain in `go.mod` is the main-maintainer's local Go version.
+# =============================================================================
+#  # How To Run
+#
+#  It is recommended to run specifying a specific service and not at once.
 #
 # - Recommended usage:
 #   - To update go.mod:
@@ -47,7 +53,6 @@ services:
     working_dir: /workspaces
     volumes:
       - .:/workspaces
-      - GO_PKG_MOD:/go/pkg/mod
     entrypoint: golangci-lint run ./...
 
   # Run latest govulncheck (vulnerability scanner)

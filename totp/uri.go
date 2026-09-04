@@ -54,13 +54,13 @@ func (u URI) AccountName() string {
 		return ""
 	}
 
-	index := strings.Index(path, ":")
+	_, after, ok := strings.Cut(path, ":")
 
-	if index == -1 {
+	if !ok {
 		return path
 	}
 
-	return path[index+1:]
+	return after
 }
 
 // Algorithm returns the algorithm from the URI.
@@ -183,13 +183,13 @@ func (u URI) IssuerFromPath() string {
 		return ""
 	}
 
-	index := strings.Index(path, ":")
+	before, _, ok := strings.Cut(path, ":")
 
-	if index == -1 {
+	if !ok {
 		return ""
 	}
 
-	return path[:index]
+	return before
 }
 
 // Path returns the path from the URI. Which is used as a "label" for the TOTP.
