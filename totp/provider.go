@@ -126,8 +126,6 @@ func (p *pquernaProvider) mapAlgorithm(a Algorithm) otp.Algorithm {
 	case AlgorithmSHA512:
 		return otp.AlgorithmSHA512
 	default:
-		// Fallback to SHA1 if it's not explicitly one of the others,
-		// or return -1 as a sign of unsupported.
 		// Given current go-totp logic, we return -1 for unknown.
 		return otp.Algorithm(-1)
 	}

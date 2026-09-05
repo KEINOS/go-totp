@@ -7,8 +7,16 @@ import (
 )
 
 // ----------------------------------------------------------------------------
-//  Type: Algorithm
+//  Internal Mappings
 // ----------------------------------------------------------------------------
+
+const (
+	idSHA1   = 0
+	idSHA256 = 1
+	idSHA512 = 2
+	idMD5    = 3
+	idUnknown = -1
+)
 
 // Algorithm is a string that represents the algorithm used to generate the
 // passcode (for HMAC).
@@ -53,13 +61,6 @@ func NewAlgorithmStr(algo string) (Algorithm, error) {
 // underlying library. This constructor is mainly for conversions and checks.
 func NewAlgorithmID(algoID int) (Algorithm, error) {
 	const (
-		idSHA1   = 0
-		idSHA256 = 1
-		idSHA512 = 2
-		idMD5    = 3
-	)
-
-	const (
 		cMD5    = "MD5"
 		cSHA1   = "SHA1"
 		cSHA256 = "SHA256"
@@ -92,14 +93,6 @@ func (algo Algorithm) ID() int {
 		cSHA1           = "SHA1"
 		cSHA256         = "SHA256"
 		cSHA512         = "SHA512"
-		UnsupportedAlgo = -1 // see issue #6
-	)
-
-	const (
-		idSHA1   = 0
-		idSHA256 = 1
-		idSHA512 = 2
-		idMD5    = 3
 	)
 
 	switch algo {
@@ -112,7 +105,7 @@ func (algo Algorithm) ID() int {
 	case cSHA512:
 		return idSHA512 // SHA512 ID in pquerna/otp
 	default:
-		return UnsupportedAlgo
+		return idUnknown
 	}
 }
 
