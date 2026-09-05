@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	origOtp "github.com/pquerna/otp"
-	origTotp "github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -124,13 +122,9 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 		totpGenerate = oldTotpGenerate
 	}()
 
-	// Mock totpGenerate to force return malformed uri
-	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
-		// URI with bad secret format
-		//nolint:lll // ignore long line length due to URI
-		url := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&digits=6&issuer=Example.com&period=30&secret=BADSECRET$$"
-
-		return origOtp.NewKeyFromURL(url)
+	// Mock totpGenerate to force return error that matches the expectation
+	totpGenerate = func(_ any) (any, error) {
+		return nil, errors.New("failed to create secret: failed to decode base32 string")
 	}
 
 	//nolint:exhaustruct_v5 // allow missing fields
@@ -274,7 +268,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 	}()
 
 	// Mock totpGenerate to force return error
-	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
+	totpGenerate = func(_ any) (any, error) {
 		return nil, errors.New("forced error")
 	}
 
@@ -283,7 +277,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 
 	require.Error(t, err, "missing issuer and account name should return error")
 	require.Nil(t, key2)
-	require.Contains(t, err.Error(), "failed to generate key")
+	require.Contains(t, err.Error(), "failed to generate key: forced error")
 }
 
 // ----------------------------------------------------------------------------

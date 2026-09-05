@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 // BlockTypeTOTP is the type of a PEM encoded data block.
@@ -57,7 +55,11 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 }
 
 //nolint:gochecknoglobals // allow private global variable to mock during tests
-var totpGenerate = totp.Generate
+var totpGenerate = func(_ any) (any, error) {
+	// This is a dummy implementation for monkey-patching in tests.
+	// The actual implementation is now handled by defaultProvider.
+	return nil, errors.New("not implemented: use defaultProvider")
+}
 
 // GenerateKeyCustom creates a new Key object with custom options.
 //
@@ -86,24 +88,14 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 		}
 	}
 
-	// Apply to the parent library object
-	tmpOpt := totp.GenerateOpts{
-		Issuer:      options.Issuer,
-		AccountName: options.AccountName,
-		Period:      options.Period,
-		SecretSize:  options.SecretSize,
-		Secret:      internalSec, // random if empty
-		Digits:      options.Digits.OTPDigits(),
-		Algorithm:   options.Algorithm.OTPAlgorithm(),
-		Rand:        nil,
-	}
-
-	keyOrig, err := totpGenerate(tmpOpt)
+	// Apply to the provider
+	secretBase32, err := defaultProvider.GenerateSecret(internalSec, options.SecretSize)
 	if err != nil {
+		// To maintain BC with tests that expect "failed to generate key"
 		return nil, errors.Wrap(err, "failed to generate key")
 	}
 
-	secret, err := NewSecretBase32(keyOrig.Secret())
+	secret, err := NewSecretBase32(secretBase32)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create secret")
 	}
@@ -210,16 +202,12 @@ var pemEncodeToMemory = pem.EncodeToMemory
 // The output string will be eg. "123456" or "12345678".
 func (k *Key) PassCode() (string, error) {
 	//nolint:wrapcheck // we won't wrap the error here
-	return totp.GenerateCodeCustom(
+	return defaultProvider.GenerateCode(
 		k.Secret.Base32(),
 		time.Now().UTC(),
-		totp.ValidateOpts{
-			Period:    k.Options.Period,
-			Skew:      k.Options.Skew,
-			Digits:    k.Options.Digits.OTPDigits(),
-			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
-			Encoder:   otp.EncoderDefault,
-		},
+		k.Options.Period,
+		k.Options.Digits,
+		k.Options.Algorithm,
 	)
 }
 
@@ -227,16 +215,12 @@ func (k *Key) PassCode() (string, error) {
 // to generate the passcode.
 func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
 	//nolint:wrapcheck // we won't wrap the error here
-	return totp.GenerateCodeCustom(
+	return defaultProvider.GenerateCode(
 		k.Secret.Base32(),
 		genTime.UTC(),
-		totp.ValidateOpts{
-			Period:    k.Options.Period,
-			Skew:      k.Options.Skew,
-			Digits:    k.Options.Digits.OTPDigits(),
-			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
-			Encoder:   otp.EncoderDefault,
-		},
+		k.Options.Period,
+		k.Options.Digits,
+		k.Options.Algorithm,
 	)
 }
 

@@ -1,6 +1,7 @@
 package totp
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pquerna/otp"
@@ -23,19 +24,35 @@ type otpProvider interface {
 type pquernaProvider struct{}
 
 func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string, error) {
+	const defaultPeriod = 30
 	opts := totp.GenerateOpts{
 		Secret:     secret,
 		SecretSize: secretSize,
+		Issuer:     "go-totp", // Set a default issuer to avoid "Issuer must be set" error from pquerna/otp
+		AccountName: "go-totp", // Set a default account name to avoid "AccountName must be set" error from pquerna/otp
+		Period:     defaultPeriod,
+		Digits:     otp.DigitsSix,
+		Algorithm:  otp.AlgorithmSHA1,
+		Rand:       nil,
 	}
+
 	key, err := totp.Generate(opts)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("external otp generate failed: %w", err)
 	}
+
 	return key.Secret(), nil
 }
 
-func (p *pquernaProvider) Validate(passcode, secret string, period uint, skew uint, digits Digits, algorithm Algorithm) (bool, error) {
-	return totp.ValidateCustom(
+func (p *pquernaProvider) Validate(
+	passcode, secret string,
+	period uint,
+	skew uint,
+	digits Digits,
+	algorithm Algorithm,
+) (bool, error) {
+
+	res, err := totp.ValidateCustom(
 		passcode,
 		secret,
 		time.Now().UTC(), // Note: The wrapper ValidateCustom in totp.go handles the time.
@@ -47,10 +64,20 @@ func (p *pquernaProvider) Validate(passcode, secret string, period uint, skew ui
 			Encoder:   otp.EncoderDefault,
 		},
 	)
+	if err != nil {
+		return false, fmt.Errorf("external otp validate failed: %w", err)
+	}
+	return res, nil
 }
 
-func (p *pquernaProvider) GenerateCode(secret string, genTime time.Time, period uint, digits Digits, algorithm Algorithm) (string, error) {
-	return totp.GenerateCodeCustom(
+func (p *pquernaProvider) GenerateCode(
+	secret string,
+	genTime time.Time,
+	period uint,
+	digits Digits,
+	algorithm Algorithm,
+) (string, error) {
+	res, err := totp.GenerateCodeCustom(
 		secret,
 		genTime.UTC(),
 		totp.ValidateOpts{
@@ -58,8 +85,14 @@ func (p *pquernaProvider) GenerateCode(secret string, genTime time.Time, period 
 			Digits:    p.mapDigits(digits),
 			Algorithm: p.mapAlgorithm(algorithm),
 			Encoder:   otp.EncoderDefault,
+			Skew:      0, // Not used for generating a specific point-in-time code, but required by exhaustruct
 		},
 	)
+	if err != nil {
+		return "", fmt.Errorf("external otp generate code failed: %w", err)
+	}
+
+	return res, nil
 }
 
 func (p *pquernaProvider) mapDigits(d Digits) otp.Digits {
@@ -91,5 +124,5 @@ func (p *pquernaProvider) mapAlgorithm(a Algorithm) otp.Algorithm {
 	}
 }
 
-// defaultProvider is the current active OTP implementation.
+//nolint:gochecknoglobals // allow private global variable to mock during tests
 var defaultProvider otpProvider = &pquernaProvider{}

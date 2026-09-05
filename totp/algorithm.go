@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/pquerna/otp"
 )
 
 // ----------------------------------------------------------------------------
@@ -14,6 +13,17 @@ import (
 // Algorithm is a string that represents the algorithm used to generate the
 // passcode (for HMAC).
 type Algorithm string
+
+// Exported Constants: Use these instead of raw strings in your code.
+const (
+	AlgorithmMD5    Algorithm = "MD5"
+	AlgorithmSHA1   Algorithm = "SHA1"
+	AlgorithmSHA256 Algorithm = "SHA256"
+	AlgorithmSHA512 Algorithm = "SHA512"
+)
+
+// OptionAlgorithmDefault is the default algorithm used for TOTP.
+const OptionAlgorithmDefault = AlgorithmSHA1
 
 // ----------------------------------------------------------------------------
 //  Constructor
@@ -43,6 +53,12 @@ func NewAlgorithmStr(algo string) (Algorithm, error) {
 // underlying library. This constructor is mainly for conversions and checks.
 func NewAlgorithmID(algoID int) (Algorithm, error) {
 	const (
+		idSHA1   = 0
+		idSHA256 = 1
+		idSHA512 = 2
+		idMD5    = 3
+	)
+	const (
 		cMD5    = "MD5"
 		cSHA1   = "SHA1"
 		cSHA256 = "SHA256"
@@ -50,13 +66,13 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 	)
 
 	switch algoID {
-	case int(otp.AlgorithmSHA1):
+	case idSHA1:
 		return cSHA1, nil
-	case int(otp.AlgorithmSHA256):
+	case idSHA256:
 		return cSHA256, nil
-	case int(otp.AlgorithmSHA512):
+	case idSHA512:
 		return cSHA512, nil
-	case int(otp.AlgorithmMD5):
+	case idMD5:
 		return cMD5, nil
 	}
 
@@ -78,15 +94,22 @@ func (algo Algorithm) ID() int {
 		UnsupportedAlgo = -1 // see issue #6
 	)
 
+	const (
+		idSHA1   = 0
+		idSHA256 = 1
+		idSHA512 = 2
+		idMD5    = 3
+	)
+
 	switch algo {
 	case cMD5:
-		return int(otp.AlgorithmMD5)
+		return idMD5 // MD5 ID in pquerna/otp
 	case cSHA1:
-		return int(otp.AlgorithmSHA1)
+		return idSHA1 // SHA1 ID in pquerna/otp
 	case cSHA256:
-		return int(otp.AlgorithmSHA256)
+		return idSHA256 // SHA256 ID in pquerna/otp
 	case cSHA512:
-		return int(otp.AlgorithmSHA512)
+		return idSHA512 // SHA512 ID in pquerna/otp
 	default:
 		return UnsupportedAlgo
 	}
@@ -102,24 +125,7 @@ func (algo Algorithm) IsSupported() bool {
 	return false
 }
 
-// OTPAlgorithm converts Algorithm to otp.Algorithm.
-// Returns otp.Algorithm(-1) for unsupported algorithms (see issue #6).
-func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
-	switch algo {
-	case "MD5":
-		return otp.AlgorithmMD5
-	case OptionAlgorithmDefault: // SHA1
-		return otp.AlgorithmSHA1
-	case "SHA256":
-		return otp.AlgorithmSHA256
-	case "SHA512":
-		return otp.AlgorithmSHA512
-	default:
-		return otp.Algorithm(-1) // fix: issue #6
-	}
-}
-
-// String is an implementation of the Stringer interface.
+// String is an implementation of the fmt.Stringer interface.
 func (algo Algorithm) String() string {
 	return strings.ToUpper(string(algo))
 }
