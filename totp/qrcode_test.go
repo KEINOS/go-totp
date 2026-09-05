@@ -409,8 +409,9 @@ func TestQRCode_PNG_fix59_error_correction_level(t *testing.T) {
 			// can have slight variations in PNG compression, which can cause flaky tests in CI.
 			diff := float64(len(pngBytes)) - float64(prevSize)
 			tolerance := float64(prevSize) * 0.05 // 5% tolerance
-			require.Truef(t, diff > -tolerance,
-				"PNG size decreased too much with higher error correction level: prev=%s(%d) -> curr=%s(%d), diff=%.2f (tolerance=%.2f)",
+			require.Greaterf(t, diff, -tolerance,
+				"PNG size decreased too much with higher error correction level: "+
+					"prev=%s(%d) -> curr=%s(%d), diff=%.2f (tolerance=%.2f)",
 				prevName, prevSize, names[index], len(pngBytes), diff, tolerance)
 		}
 
