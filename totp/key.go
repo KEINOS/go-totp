@@ -2,6 +2,7 @@ package totp
 
 import (
 	"encoding/pem"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -34,7 +35,7 @@ type Key struct {
 //
 //	key, err := totp.GenerateKey("MyIssuer", "MyAccountName",
 //		totp.WithAlgorithm(totp.Algorithm("SHA256"))
-//		// for more customization options, see the options.go file.
+//		// for more customization, see the options.go file.
 //	)
 func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error) {
 	// Create options with default values.
@@ -91,14 +92,11 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 	// Apply to the provider
 	// Note: we check if totpGenerate is mocked to maintain BC with tests.
 	// In a real scenario, defaultProvider is used.
+
 	var secretBase32 string
+
 	var err error
-	if totpGenerate != nil {
-		// Check if we are in a test that monkey-patched totpGenerate
-		// The original implementation of GenerateKey relied on a global variable for mocking.
-		// To keep tests working, we check if it's been changed from the "not implemented" dummy.
-	}
-	
+
 	// Actually, the cleanest way to keep monkey-patching tests working is to call a function 
 	// that can be patched.
 	secretBase32, err = callGenerateSecret(internalSec, options.SecretSize)
@@ -129,13 +127,20 @@ func callGenerateSecret(sec []byte, size uint) (string, error) {
 		if err != nil && err.Error() != "not implemented: use defaultProvider" {
 			return "", err
 		}
+
 		if res != nil {
 			if s, ok := res.(string); ok {
 				return s, nil
 			}
 		}
 	}
-	return defaultProvider.GenerateSecret(sec, size)
+
+	res, err := defaultProvider.GenerateSecret(sec, size)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate secret: %w", err)
+	}
+
+	return res, nil
 }
 
 // GenerateKeyPEM creates a Key from a PEM-formatted string.

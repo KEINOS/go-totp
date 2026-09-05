@@ -15,7 +15,14 @@ type otpProvider interface {
 	// If secret is empty, a random secret of secretSize is generated.
 	GenerateSecret(secret []byte, secretSize uint) (string, error)
 	// Validate checks if the passcode is valid for the given secret and options.
-	Validate(passcode, secret string, validationTime time.Time, period uint, skew uint, digits Digits, algorithm Algorithm) (bool, error)
+	Validate(
+		passcode, secret string,
+		validationTime time.Time,
+		period uint,
+		skew uint,
+		digits Digits,
+		algorithm Algorithm,
+	) (bool, error)
 	// GenerateCode produces a passcode for the given secret and time.
 	GenerateCode(secret string, genTime time.Time, period uint, digits Digits, algorithm Algorithm) (string, error)
 }
