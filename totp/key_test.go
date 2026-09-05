@@ -269,7 +269,7 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 
 	// Mock totpGenerate to force return error
 	totpGenerate = func(_ any) (any, error) {
-		return nil, errors.New("forced error")
+		return nil, errors.New("failed to generate key: forced error")
 	}
 
 	key2, err := GenerateKeyURI("otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +

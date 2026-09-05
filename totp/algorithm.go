@@ -58,6 +58,7 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 		idSHA512 = 2
 		idMD5    = 3
 	)
+
 	const (
 		cMD5    = "MD5"
 		cSHA1   = "SHA1"
@@ -118,7 +119,7 @@ func (algo Algorithm) ID() int {
 // IsSupported returns true if the algorithm is supported.
 func (algo Algorithm) IsSupported() bool {
 	switch algo {
-	case "MD5", OptionAlgorithmDefault, "SHA256", "SHA512":
+	case AlgorithmMD5, OptionAlgorithmDefault, AlgorithmSHA256, AlgorithmSHA512:
 		return true
 	}
 

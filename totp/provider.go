@@ -15,7 +15,7 @@ type otpProvider interface {
 	// If secret is empty, a random secret of secretSize is generated.
 	GenerateSecret(secret []byte, secretSize uint) (string, error)
 	// Validate checks if the passcode is valid for the given secret and options.
-	Validate(passcode, secret string, period uint, skew uint, digits Digits, algorithm Algorithm) (bool, error)
+	Validate(passcode, secret string, validationTime time.Time, period uint, skew uint, digits Digits, algorithm Algorithm) (bool, error)
 	// GenerateCode produces a passcode for the given secret and time.
 	GenerateCode(secret string, genTime time.Time, period uint, digits Digits, algorithm Algorithm) (string, error)
 }
@@ -25,6 +25,7 @@ type pquernaProvider struct{}
 
 func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string, error) {
 	const defaultPeriod = 30
+
 	opts := totp.GenerateOpts{
 		Secret:     secret,
 		SecretSize: secretSize,
@@ -46,16 +47,16 @@ func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string
 
 func (p *pquernaProvider) Validate(
 	passcode, secret string,
+	validationTime time.Time,
 	period uint,
 	skew uint,
 	digits Digits,
 	algorithm Algorithm,
 ) (bool, error) {
-
 	res, err := totp.ValidateCustom(
 		passcode,
 		secret,
-		time.Now().UTC(), // Note: The wrapper ValidateCustom in totp.go handles the time.
+		validationTime.UTC(),
 		totp.ValidateOpts{
 			Period:    period,
 			Skew:      skew,
@@ -67,6 +68,7 @@ func (p *pquernaProvider) Validate(
 	if err != nil {
 		return false, fmt.Errorf("external otp validate failed: %w", err)
 	}
+
 	return res, nil
 }
 
@@ -108,17 +110,17 @@ func (p *pquernaProvider) mapDigits(d Digits) otp.Digits {
 
 func (p *pquernaProvider) mapAlgorithm(a Algorithm) otp.Algorithm {
 	switch a {
-	case "MD5":
+	case AlgorithmMD5:
 		return otp.AlgorithmMD5
 	case OptionAlgorithmDefault:
 		return otp.AlgorithmSHA1
-	case "SHA256":
+	case AlgorithmSHA256:
 		return otp.AlgorithmSHA256
-	case "SHA512":
+	case AlgorithmSHA512:
 		return otp.AlgorithmSHA512
 	default:
 		// Fallback to SHA1 if it's not explicitly one of the others,
-		// or return -1 as a sign of unsupported. 
+		// or return -1 as a sign of unsupported.
 		// Given current go-totp logic, we return -1 for unknown.
 		return otp.Algorithm(-1)
 	}
