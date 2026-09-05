@@ -55,11 +55,14 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 	return GenerateKeyCustom(*optsCustom)
 }
 
+// ErrNotImplemented is returned by the internal mock when the actual implementation should be used.
+var ErrNotImplemented = errors.New("not implemented: use defaultProvider")
+
 //nolint:gochecknoglobals // allow private global variable to mock during tests
 var totpGenerate = func(_ any) (any, error) {
 	// This is a dummy implementation for monkey-patching in tests.
 	// The actual implementation is now handled by defaultProvider.
-	return nil, errors.New("not implemented: use defaultProvider")
+	return nil, ErrNotImplemented
 }
 
 // GenerateKeyCustom creates a new Key object with custom options.
@@ -124,7 +127,7 @@ func callGenerateSecret(sec []byte, size uint) (string, error) {
 		// Try to call the mock with a dummy value. 
 		// If it doesn't return the "not implemented" error, it's a real mock.
 		res, err := totpGenerate(nil)
-		if err != nil && err.Error() != "not implemented: use defaultProvider" {
+		if err != nil && !errors.Is(err, ErrNotImplemented) {
 			return "", err
 		}
 

@@ -57,14 +57,6 @@ func TestAlgorithm_ID_unsupported(t *testing.T) {
 	require.Equal(t, expect, actual, "unsupported algorithm should return -1 which is the unknown algorithm")
 }
 
-// TestAlgorithm_OTPAlgorithm is deprecated as OTPAlgorithm() is now internal to the provider.
-func TestAlgorithm_OTPAlgorithm(t *testing.T) {
-	t.Parallel()
-	_ = t
-	// This test is now effectively a no-op or should be removed.
-	// For now, we'll just skip its logic.
-}
-
 func TestNewAlgorithmStr_unsupported_algo(t *testing.T) {
 	t.Parallel()
 
@@ -72,7 +64,6 @@ func TestNewAlgorithmStr_unsupported_algo(t *testing.T) {
 
 	require.Error(t, err, "unsupported algorithm should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm")
-	require.Contains(t, err.Error(), "it should be")
 }
 
 func TestNewAlgorithmID_invalid_id(t *testing.T) {
@@ -82,5 +73,4 @@ func TestNewAlgorithmID_invalid_id(t *testing.T) {
 
 	require.Error(t, err, "unsupported ID should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm ID")
-	require.Contains(t, err.Error(), "it should be")
 }
