@@ -55,14 +55,14 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 	return GenerateKeyCustom(*optsCustom)
 }
 
-// ErrNotImplemented is returned by the internal mock when the actual implementation should be used.
-var ErrNotImplemented = errors.New("not implemented: use defaultProvider")
+// errNotImplemented is returned by the internal mock when the actual implementation should be used.
+var errNotImplemented = errors.New("not implemented: use defaultProvider")
 
 //nolint:gochecknoglobals // allow private global variable to mock during tests
 var totpGenerate = func(_ any) (any, error) {
 	// This is a dummy implementation for monkey-patching in tests.
 	// The actual implementation is now handled by defaultProvider.
-	return nil, ErrNotImplemented
+	return nil, errNotImplemented
 }
 
 // GenerateKeyCustom creates a new Key object with custom options.
@@ -104,7 +104,7 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 	// that can be patched.
 	secretBase32, err = callGenerateSecret(internalSec, options.SecretSize)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate key")
+		return nil, errors.Wrap(err, "failed to generate secret")
 	}
 
 	secret, err := NewSecretBase32(secretBase32)
@@ -127,7 +127,7 @@ func callGenerateSecret(sec []byte, size uint) (string, error) {
 		// Try to call the mock with a dummy value. 
 		// If it doesn't return the "not implemented" error, it's a real mock.
 		res, err := totpGenerate(nil)
-		if err != nil && !errors.Is(err, ErrNotImplemented) {
+		if err != nil && !errors.Is(err, errNotImplemented) {
 			return "", err
 		}
 
@@ -135,6 +135,8 @@ func callGenerateSecret(sec []byte, size uint) (string, error) {
 			if s, ok := res.(string); ok {
 				return s, nil
 			}
+			// Use errors.Errorf for dynamic errors to satisfy err113 (standard in this project).
+			return "", errors.Errorf("mock returned invalid type: expected string, got %T", res)
 		}
 	}
 

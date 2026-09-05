@@ -33,6 +33,11 @@ type pquernaProvider struct{}
 func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string, error) {
 	const defaultPeriod = 30
 
+	// Normalize empty slices to nil to ensure the upstream library triggers random generation.
+	if len(secret) == 0 {
+		secret = nil
+	}
+
 	opts := totp.GenerateOpts{
 		Secret:     secret,
 		SecretSize: secretSize,

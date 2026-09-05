@@ -122,9 +122,10 @@ func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
 		totpGenerate = oldTotpGenerate
 	}()
 
-	// Mock totpGenerate to force return error that matches the expectation
+	// Mock totpGenerate to return a raw base32 decoding error.
+	// We don't mock the "failed to create secret" wrapper here, as that's what we want to test.
 	totpGenerate = func(_ any) (any, error) {
-		return nil, errors.New("failed to create secret: failed to decode base32 string")
+		return "invalid-base32-secret", nil
 	}
 
 	//nolint:exhaustruct_v5 // allow missing fields
@@ -267,9 +268,11 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 		totpGenerate = oldTotpGenerate
 	}()
 
-	// Mock totpGenerate to force return error
+	// Mock totpGenerate to return a raw underlying error.
+	// The wrapper "failed to generate secret" is added in callGenerateSecret, 
+	// and then "failed to generate key" is added in GenKeyFromURI.
 	totpGenerate = func(_ any) (any, error) {
-		return nil, errors.New("failed to generate key: forced error")
+		return nil, errors.New("forced underlying error")
 	}
 
 	key2, err := GenerateKeyURI("otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
@@ -277,7 +280,9 @@ func TestGenerateKeyURI_error_msg(t *testing.T) {
 
 	require.Error(t, err, "missing issuer and account name should return error")
 	require.Nil(t, key2)
-	require.Contains(t, err.Error(), "failed to generate key: forced error")
+	require.Contains(t, err.Error(), "failed to generate key")
+	require.Contains(t, err.Error(), "failed to generate secret")
+	require.Contains(t, err.Error(), "forced underlying error")
 }
 
 // ----------------------------------------------------------------------------
