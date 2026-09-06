@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pquerna/otp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -73,4 +74,20 @@ func TestNewAlgorithmID_invalid_id(t *testing.T) {
 
 	require.Error(t, err, "unsupported ID should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm ID")
+}
+
+func TestAlgorithm_OTPAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	tests := map[Algorithm]otp.Algorithm{
+		AlgorithmMD5:    otp.AlgorithmMD5,
+		AlgorithmSHA1:   otp.AlgorithmSHA1,
+		AlgorithmSHA256: otp.AlgorithmSHA256,
+		AlgorithmSHA512: otp.AlgorithmSHA512,
+		"UNKNOWN":       otp.Algorithm(-1),
+	}
+
+	for algorithm, want := range tests {
+		require.Equal(t, want, algorithm.OTPAlgorithm())
+	}
 }

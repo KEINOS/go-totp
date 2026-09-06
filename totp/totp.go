@@ -54,7 +54,7 @@ func Validate(passcode, secret string, options Options) bool {
 
 // ValidateCustom is like Validate but allows a custom validation time.
 func ValidateCustom(passcode, secret string, validationTime time.Time, options Options) bool {
-	isValid, err := defaultProvider.Validate(
+	isValid, err := newDefaultProvider().validate(
 		passcode,
 		secret,
 		validationTime,

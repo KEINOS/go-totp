@@ -2,7 +2,6 @@ package totp
 
 import (
 	"encoding/pem"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -55,21 +54,15 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 	return GenerateKeyCustom(*optsCustom)
 }
 
-// errNotImplemented is returned by the internal mock when the actual implementation should be used.
-var errNotImplemented = errors.New("not implemented: use defaultProvider")
-
-//nolint:gochecknoglobals // allow private global variable to mock during tests
-var totpGenerate = func(_ any) (any, error) {
-	// This is a dummy implementation for monkey-patching in tests.
-	// The actual implementation is now handled by defaultProvider.
-	return nil, errNotImplemented
-}
-
 // GenerateKeyCustom creates a new Key object with custom options.
 //
 // Usually, `GenerateKey` with options is enough for most cases. But if you need
 // more control over the options, use this function.
 func GenerateKeyCustom(options Options) (*Key, error) {
+	return generateKeyCustom(options, newDefaultProvider())
+}
+
+func generateKeyCustom(options Options, provider otpProvider) (*Key, error) {
 	internalSec := []byte{} // random by default (if len = 0)
 
 	// Fall back to default KDF if not set
@@ -92,17 +85,7 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 		}
 	}
 
-	// Apply to the provider
-	// Note: we check if totpGenerate is mocked to maintain BC with tests.
-	// In a real scenario, defaultProvider is used.
-
-	var secretBase32 string
-
-	var err error
-
-	// Actually, the cleanest way to keep monkey-patching tests working is to call a function 
-	// that can be patched.
-	secretBase32, err = callGenerateSecret(internalSec, options.SecretSize)
+	secretBase32, err := provider.generateSecret(options, internalSec)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate secret")
 	}
@@ -118,34 +101,6 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 	}
 
 	return key, nil
-}
-
-func callGenerateSecret(sec []byte, size uint) (string, error) {
-	// Use the mock if it's not the default "not implemented" dummy.
-	// This restores the behavior expected by monkey-patched tests.
-	if totpGenerate != nil {
-		// Try to call the mock with a dummy value. 
-		// If it doesn't return the "not implemented" error, it's a real mock.
-		res, err := totpGenerate(nil)
-		if err != nil && !errors.Is(err, errNotImplemented) {
-			return "", err
-		}
-
-		if res != nil {
-			if s, ok := res.(string); ok {
-				return s, nil
-			}
-			// Use errors.Errorf for dynamic errors to satisfy err113 (standard in this project).
-			return "", errors.Errorf("mock returned invalid type: expected string, got %T", res)
-		}
-	}
-
-	res, err := defaultProvider.GenerateSecret(sec, size)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate secret: %w", err)
-	}
-
-	return res, nil
 }
 
 // GenerateKeyPEM creates a Key from a PEM-formatted string.
@@ -241,8 +196,7 @@ var pemEncodeToMemory = pem.EncodeToMemory
 // PassCode generates a 6 or 8 digits passcode for the current time.
 // The output string will be eg. "123456" or "12345678".
 func (k *Key) PassCode() (string, error) {
-	//nolint:wrapcheck // we won't wrap the error here
-	return defaultProvider.GenerateCode(
+	return newDefaultProvider().generateCode(
 		k.Secret.Base32(),
 		time.Now().UTC(),
 		k.Options.Period,
@@ -254,8 +208,7 @@ func (k *Key) PassCode() (string, error) {
 // PassCodeCustom is similar to PassCode() but allows you to specify the time
 // to generate the passcode.
 func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
-	//nolint:wrapcheck // we won't wrap the error here
-	return defaultProvider.GenerateCode(
+	return newDefaultProvider().generateCode(
 		k.Secret.Base32(),
 		genTime.UTC(),
 		k.Options.Period,

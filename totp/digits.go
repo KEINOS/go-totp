@@ -2,6 +2,8 @@ package totp
 
 import (
 	"fmt"
+
+	"github.com/pquerna/otp"
 )
 
 // ----------------------------------------------------------------------------
@@ -41,6 +43,21 @@ func NewDigitsStr(digits string) Digits {
 // ----------------------------------------------------------------------------
 //  Methods
 // ----------------------------------------------------------------------------
+
+// OTPDigits converts Digits to otp.Digits.
+//
+// Deprecated: Use Digits directly. This compatibility method will be removed
+// in the next major release.
+func (d Digits) OTPDigits() otp.Digits {
+	switch d {
+	case DigitsSix:
+		return otp.DigitsSix
+	case DigitsEight:
+		return otp.DigitsEight
+	default:
+		return otp.DigitsSix
+	}
+}
 
 // String is an implementation of the fmt.Stringer interface.
 func (d Digits) String() string {

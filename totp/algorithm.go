@@ -4,18 +4,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-)
-
-// ----------------------------------------------------------------------------
-//  Internal Mappings
-// ----------------------------------------------------------------------------
-
-const (
-	idSHA1   = 0
-	idSHA256 = 1
-	idSHA512 = 2
-	idMD5    = 3
-	idUnknown = -1
+	"github.com/pquerna/otp"
 )
 
 // Algorithm is a string that represents the algorithm used to generate the
@@ -68,13 +57,13 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 	)
 
 	switch algoID {
-	case idSHA1:
+	case int(otp.AlgorithmSHA1):
 		return cSHA1, nil
-	case idSHA256:
+	case int(otp.AlgorithmSHA256):
 		return cSHA256, nil
-	case idSHA512:
+	case int(otp.AlgorithmSHA512):
 		return cSHA512, nil
-	case idMD5:
+	case int(otp.AlgorithmMD5):
 		return cMD5, nil
 	}
 
@@ -89,23 +78,36 @@ func NewAlgorithmID(algoID int) (Algorithm, error) {
 // Returns -1 for undefined/unsupported algorithms.
 func (algo Algorithm) ID() int {
 	const (
-		cMD5            = "MD5"
-		cSHA1           = "SHA1"
-		cSHA256         = "SHA256"
-		cSHA512         = "SHA512"
+		cMD5    = "MD5"
+		cSHA1   = "SHA1"
+		cSHA256 = "SHA256"
+		cSHA512 = "SHA512"
 	)
 
 	switch algo {
-	case cMD5:
-		return idMD5 // MD5 ID in pquerna/otp
-	case cSHA1:
-		return idSHA1 // SHA1 ID in pquerna/otp
-	case cSHA256:
-		return idSHA256 // SHA256 ID in pquerna/otp
-	case cSHA512:
-		return idSHA512 // SHA512 ID in pquerna/otp
+	case cMD5, cSHA1, cSHA256, cSHA512:
+		return int(algo.OTPAlgorithm())
 	default:
-		return idUnknown
+		return -1
+	}
+}
+
+// OTPAlgorithm converts Algorithm to otp.Algorithm.
+//
+// Deprecated: Use Algorithm directly. This compatibility method will be
+// removed in the next major release.
+func (algo Algorithm) OTPAlgorithm() otp.Algorithm {
+	switch algo {
+	case AlgorithmMD5:
+		return otp.AlgorithmMD5
+	case OptionAlgorithmDefault:
+		return otp.AlgorithmSHA1
+	case AlgorithmSHA256:
+		return otp.AlgorithmSHA256
+	case AlgorithmSHA512:
+		return otp.AlgorithmSHA512
+	default:
+		return otp.Algorithm(-1)
 	}
 }
 

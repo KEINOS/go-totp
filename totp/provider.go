@@ -11,11 +11,11 @@ import (
 // otpProvider defines the internal interface for OTP operations.
 // This abstracts the underlying library to allow switching implementations.
 type otpProvider interface {
-	// GenerateSecret returns a base32 encoded secret.
-	// If secret is empty, a random secret of secretSize is generated.
-	GenerateSecret(secret []byte, secretSize uint) (string, error)
+	// generateSecret returns a base32 encoded secret. An empty secret requests a
+	// randomly generated secret of options.SecretSize bytes.
+	generateSecret(options Options, secret []byte) (string, error)
 	// Validate checks if the passcode is valid for the given secret and options.
-	Validate(
+	validate(
 		passcode, secret string,
 		validationTime time.Time,
 		period uint,
@@ -24,29 +24,27 @@ type otpProvider interface {
 		algorithm Algorithm,
 	) (bool, error)
 	// GenerateCode produces a passcode for the given secret and time.
-	GenerateCode(secret string, genTime time.Time, period uint, digits Digits, algorithm Algorithm) (string, error)
+	generateCode(secret string, genTime time.Time, period uint, digits Digits, algorithm Algorithm) (string, error)
 }
 
 // pquernaProvider is the implementation of otpProvider using github.com/pquerna/otp.
 type pquernaProvider struct{}
 
-func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string, error) {
-	const defaultPeriod = 30
-
+func (pquernaProvider) generateSecret(options Options, secret []byte) (string, error) {
 	// Normalize empty slices to nil to ensure the upstream library triggers random generation.
 	if len(secret) == 0 {
 		secret = nil
 	}
 
 	opts := totp.GenerateOpts{
-		Secret:     secret,
-		SecretSize: secretSize,
-		Issuer:     "go-totp", // Set a default issuer to avoid "Issuer must be set" error from pquerna/otp
-		AccountName: "go-totp", // Set a default account name to avoid "AccountName must be set" error from pquerna/otp
-		Period:     defaultPeriod,
-		Digits:     otp.DigitsSix,
-		Algorithm:  otp.AlgorithmSHA1,
-		Rand:       nil,
+		Secret:      secret,
+		SecretSize:  options.SecretSize,
+		Issuer:      options.Issuer,
+		AccountName: options.AccountName,
+		Period:      options.Period,
+		Digits:      options.Digits.OTPDigits(),
+		Algorithm:   options.Algorithm.OTPAlgorithm(),
+		Rand:        nil,
 	}
 
 	key, err := totp.Generate(opts)
@@ -57,7 +55,7 @@ func (p *pquernaProvider) GenerateSecret(secret []byte, secretSize uint) (string
 	return key.Secret(), nil
 }
 
-func (p *pquernaProvider) Validate(
+func (pquernaProvider) validate(
 	passcode, secret string,
 	validationTime time.Time,
 	period uint,
@@ -72,8 +70,8 @@ func (p *pquernaProvider) Validate(
 		totp.ValidateOpts{
 			Period:    period,
 			Skew:      skew,
-			Digits:    p.mapDigits(digits),
-			Algorithm: p.mapAlgorithm(algorithm),
+			Digits:    digits.OTPDigits(),
+			Algorithm: algorithm.OTPAlgorithm(),
 			Encoder:   otp.EncoderDefault,
 		},
 	)
@@ -84,7 +82,7 @@ func (p *pquernaProvider) Validate(
 	return res, nil
 }
 
-func (p *pquernaProvider) GenerateCode(
+func (pquernaProvider) generateCode(
 	secret string,
 	genTime time.Time,
 	period uint,
@@ -96,8 +94,8 @@ func (p *pquernaProvider) GenerateCode(
 		genTime.UTC(),
 		totp.ValidateOpts{
 			Period:    period,
-			Digits:    p.mapDigits(digits),
-			Algorithm: p.mapAlgorithm(algorithm),
+			Digits:    digits.OTPDigits(),
+			Algorithm: algorithm.OTPAlgorithm(),
 			Encoder:   otp.EncoderDefault,
 			Skew:      0, // Not used for generating a specific point-in-time code, but required by exhaustruct
 		},
@@ -109,32 +107,6 @@ func (p *pquernaProvider) GenerateCode(
 	return res, nil
 }
 
-func (p *pquernaProvider) mapDigits(d Digits) otp.Digits {
-	switch d {
-	case DigitsSix:
-		return otp.DigitsSix
-	case DigitsEight:
-		return otp.DigitsEight
-	default:
-		return otp.DigitsSix
-	}
+func newDefaultProvider() pquernaProvider {
+	return pquernaProvider{}
 }
-
-func (p *pquernaProvider) mapAlgorithm(a Algorithm) otp.Algorithm {
-	switch a {
-	case AlgorithmMD5:
-		return otp.AlgorithmMD5
-	case OptionAlgorithmDefault:
-		return otp.AlgorithmSHA1
-	case AlgorithmSHA256:
-		return otp.AlgorithmSHA256
-	case AlgorithmSHA512:
-		return otp.AlgorithmSHA512
-	default:
-		// Given current go-totp logic, we return -1 for unknown.
-		return otp.Algorithm(-1)
-	}
-}
-
-//nolint:gochecknoglobals // allow private global variable to mock during tests
-var defaultProvider otpProvider = &pquernaProvider{}
