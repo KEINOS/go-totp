@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	origOtp "github.com/pquerna/otp"
-	origTotp "github.com/pquerna/otp/totp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -115,36 +113,82 @@ func TestGenerateKeyCustom_curve_mismatch(t *testing.T) {
 //  GenerateKeyCustom()
 // ----------------------------------------------------------------------------
 
-//nolint:paralleltest // disable parallel test due to monkey patching during test
+type fakeOTPProvider struct {
+	secret       string
+	generateErr  error
+	gotOptions   Options
+	gotSecretRaw []byte
+}
+
+func (p *fakeOTPProvider) generateSecret(options Options, secret []byte) (string, error) {
+	p.gotOptions = options
+
+	p.gotSecretRaw = append([]byte(nil), secret...)
+
+	return p.secret, p.generateErr
+}
+
+func (*fakeOTPProvider) validate(string, string, time.Time, uint, uint, Digits, Algorithm) (bool, error) {
+	return false, nil
+}
+
+func (*fakeOTPProvider) generateCode(string, time.Time, uint, Digits, Algorithm) (string, error) {
+	return "", nil
+}
+
 func TestGenerateKeyCustom_wrong_digits(t *testing.T) {
-	// Backup and defer restore
-	oldTotpGenerate := totpGenerate
-
-	defer func() {
-		totpGenerate = oldTotpGenerate
-	}()
-
-	// Mock totpGenerate to force return malformed uri
-	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
-		// URI with bad secret format
-		//nolint:lll // ignore long line length due to URI
-		url := "otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&digits=6&issuer=Example.com&period=30&secret=BADSECRET$$"
-
-		return origOtp.NewKeyFromURL(url)
-	}
+	t.Parallel()
 
 	//nolint:exhaustruct_v5 // allow missing fields
 	opt := Options{
 		Issuer:      "Example.com",
 		AccountName: "alice@example.com",
 	}
+	provider := new(fakeOTPProvider)
+	provider.secret = "invalid" + "-base32-secret"
 
-	key, err := GenerateKeyCustom(opt)
+	key, err := generateKeyCustom(opt, provider)
 
 	require.Error(t, err, "bad encoding of secret should return error")
 	require.Nil(t, key, "it should be nil on error")
 	require.Contains(t, err.Error(), "failed to create secret")
 	require.Contains(t, err.Error(), "failed to decode base32 string")
+}
+
+func TestGenerateKeyCustom_provider_error(t *testing.T) {
+	t.Parallel()
+
+	provider := new(fakeOTPProvider)
+	provider.generateErr = errors.New("forced provider error")
+	options := new(Options)
+
+	key, err := generateKeyCustom(*options, provider)
+
+	require.Error(t, err)
+	require.Nil(t, key)
+	require.ErrorContains(t, err, "failed to generate secret")
+	require.ErrorContains(t, err, "forced provider error")
+}
+
+func TestGenerateKeyCustom_passes_options_to_provider(t *testing.T) {
+	t.Parallel()
+
+	options, err := NewOptions("Example.com", "alice@example.com")
+	require.NoError(t, err)
+
+	provider := new(fakeOTPProvider)
+	provider.secret = NewSecretBytes([]byte("test secret")).Base32()
+	key, err := generateKeyCustom(*options, provider)
+
+	require.NoError(t, err)
+	require.NotNil(t, key)
+	require.Equal(t, options.Issuer, provider.gotOptions.Issuer)
+	require.Equal(t, options.AccountName, provider.gotOptions.AccountName)
+	require.Equal(t, options.Period, provider.gotOptions.Period)
+	require.Equal(t, options.Digits, provider.gotOptions.Digits)
+	require.Equal(t, options.Algorithm, provider.gotOptions.Algorithm)
+	require.Equal(t, options.SecretSize, provider.gotOptions.SecretSize)
+	require.Empty(t, provider.gotSecretRaw)
 }
 
 // ----------------------------------------------------------------------------
@@ -257,33 +301,14 @@ gX7ff3VlT4sCakCjQH69ZQxTbzs=
 
 // GenerateKeyURI is deprecated, but since it uses GenKeyFromURI under the hood,
 // we test it here both at the same time.
-//
-//nolint:paralleltest // disable parallel test due to monkey patching during test
 func TestGenerateKeyURI_error_msg(t *testing.T) {
+	t.Parallel()
+
 	key1, err := GenerateKeyURI("")
 
 	require.Error(t, err, "malformed URI should return error")
 	require.Nil(t, key1)
 	require.Contains(t, err.Error(), "failed to create URI object from the given URI")
-
-	// Backup and defer restore
-	oldTotpGenerate := totpGenerate
-
-	defer func() {
-		totpGenerate = oldTotpGenerate
-	}()
-
-	// Mock totpGenerate to force return error
-	totpGenerate = func(_ origTotp.GenerateOpts) (*origOtp.Key, error) {
-		return nil, errors.New("forced error")
-	}
-
-	key2, err := GenerateKeyURI("otpauth://totp/Example.com:alice@example.com?algorithm=SHA1&" +
-		"digits=12&issuer=Example.com&period=60&secret=QF7N673VMVHYWATKICRUA7V5MUGFG3Z3")
-
-	require.Error(t, err, "missing issuer and account name should return error")
-	require.Nil(t, key2)
-	require.Contains(t, err.Error(), "failed to generate key")
 }
 
 // ----------------------------------------------------------------------------

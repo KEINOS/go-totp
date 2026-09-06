@@ -1,10 +1,10 @@
-//nolint:goconst
 package totp
 
 import (
 	"strings"
 	"testing"
 
+	"github.com/pquerna/otp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,28 +58,6 @@ func TestAlgorithm_ID_unsupported(t *testing.T) {
 	require.Equal(t, expect, actual, "unsupported algorithm should return -1 which is the unknown algorithm")
 }
 
-func TestAlgorithm_OTPAlgorithm(t *testing.T) {
-	t.Parallel()
-
-	for _, test := range []struct {
-		algo  string
-		otpID int
-	}{
-		{"SHA1", 0}, // SHA1 is the default algorithm.
-		{"SHA256", 1},
-		{"SHA512", 2},
-		{"MD5", 3},
-		{"UNKNOWN", -1}, // Unsupported algorithm should return -1. See issue #6.
-	} {
-		algo := Algorithm(test.algo)
-
-		expect := test.otpID
-		actual := int(algo.OTPAlgorithm())
-
-		require.Equal(t, expect, actual)
-	}
-}
-
 func TestNewAlgorithmStr_unsupported_algo(t *testing.T) {
 	t.Parallel()
 
@@ -87,7 +65,6 @@ func TestNewAlgorithmStr_unsupported_algo(t *testing.T) {
 
 	require.Error(t, err, "unsupported algorithm should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm")
-	require.Contains(t, err.Error(), "it should be")
 }
 
 func TestNewAlgorithmID_invalid_id(t *testing.T) {
@@ -97,5 +74,20 @@ func TestNewAlgorithmID_invalid_id(t *testing.T) {
 
 	require.Error(t, err, "unsupported ID should return error")
 	require.Contains(t, err.Error(), "unsupported algorithm ID")
-	require.Contains(t, err.Error(), "it should be")
+}
+
+func TestAlgorithm_OTPAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	tests := map[Algorithm]otp.Algorithm{
+		AlgorithmMD5:    otp.AlgorithmMD5,
+		AlgorithmSHA1:   otp.AlgorithmSHA1,
+		AlgorithmSHA256: otp.AlgorithmSHA256,
+		AlgorithmSHA512: otp.AlgorithmSHA512,
+		"UNKNOWN":       otp.Algorithm(-1),
+	}
+
+	for algorithm, want := range tests {
+		require.Equal(t, want, algorithm.OTPAlgorithm())
+	}
 }

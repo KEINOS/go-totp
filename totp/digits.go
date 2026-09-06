@@ -44,20 +44,22 @@ func NewDigitsStr(digits string) Digits {
 //  Methods
 // ----------------------------------------------------------------------------
 
-// OTPDigits returns the value in otp.Digits type. Undefined Digits will always
-// return otp.DigitsSix.
+// OTPDigits converts Digits to otp.Digits.
+//
+// Deprecated: Use Digits directly. This compatibility method will be removed
+// in the next major release.
 func (d Digits) OTPDigits() otp.Digits {
 	switch d {
 	case DigitsSix:
 		return otp.DigitsSix
 	case DigitsEight:
 		return otp.DigitsEight
+	default:
+		return otp.DigitsSix
 	}
-
-	return otp.DigitsSix
 }
 
-// String returns the string representation of the Digits.
+// String is an implementation of the fmt.Stringer interface.
 func (d Digits) String() string {
 	return fmt.Sprintf("%d", d)
 }

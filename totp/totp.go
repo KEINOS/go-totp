@@ -20,9 +20,6 @@ package totp
 import (
 	"strconv"
 	"time"
-
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 // StrToUint converts a string to an unsigned integer. If the string is not a
@@ -57,17 +54,14 @@ func Validate(passcode, secret string, options Options) bool {
 
 // ValidateCustom is like Validate but allows a custom validation time.
 func ValidateCustom(passcode, secret string, validationTime time.Time, options Options) bool {
-	isValid, err := totp.ValidateCustom(
+	isValid, err := newDefaultProvider().validate(
 		passcode,
 		secret,
-		validationTime.UTC(),
-		totp.ValidateOpts{
-			Period:    options.Period,
-			Skew:      options.Skew,
-			Digits:    options.Digits.OTPDigits(),
-			Algorithm: options.Algorithm.OTPAlgorithm(),
-			Encoder:   otp.EncoderDefault,
-		},
+		validationTime,
+		options.Period,
+		options.Skew,
+		options.Digits,
+		options.Algorithm,
 	)
 	if !isValid || err != nil {
 		return false
