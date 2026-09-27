@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 // BlockTypeTOTP is the type of a PEM encoded data block.
@@ -36,7 +34,7 @@ type Key struct {
 //
 //	key, err := totp.GenerateKey("MyIssuer", "MyAccountName",
 //		totp.WithAlgorithm(totp.Algorithm("SHA256"))
-//		// for more customization options, see the options.go file.
+//		// for more customization, see the options.go file.
 //	)
 func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error) {
 	// Create options with default values.
@@ -56,14 +54,15 @@ func GenerateKey(issuer string, accountName string, opts ...Option) (*Key, error
 	return GenerateKeyCustom(*optsCustom)
 }
 
-//nolint:gochecknoglobals // allow private global variable to mock during tests
-var totpGenerate = totp.Generate
-
 // GenerateKeyCustom creates a new Key object with custom options.
 //
 // Usually, `GenerateKey` with options is enough for most cases. But if you need
 // more control over the options, use this function.
 func GenerateKeyCustom(options Options) (*Key, error) {
+	return generateKeyCustom(options, newDefaultProvider())
+}
+
+func generateKeyCustom(options Options, provider otpProvider) (*Key, error) {
 	internalSec := []byte{} // random by default (if len = 0)
 
 	// Fall back to default KDF if not set
@@ -86,24 +85,12 @@ func GenerateKeyCustom(options Options) (*Key, error) {
 		}
 	}
 
-	// Apply to the parent library object
-	tmpOpt := totp.GenerateOpts{
-		Issuer:      options.Issuer,
-		AccountName: options.AccountName,
-		Period:      options.Period,
-		SecretSize:  options.SecretSize,
-		Secret:      internalSec, // random if empty
-		Digits:      options.Digits.OTPDigits(),
-		Algorithm:   options.Algorithm.OTPAlgorithm(),
-		Rand:        nil,
-	}
-
-	keyOrig, err := totpGenerate(tmpOpt)
+	secretBase32, err := provider.generateSecret(options, internalSec)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate key")
+		return nil, errors.Wrap(err, "failed to generate secret")
 	}
 
-	secret, err := NewSecretBase32(keyOrig.Secret())
+	secret, err := NewSecretBase32(secretBase32)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create secret")
 	}
@@ -209,34 +196,24 @@ var pemEncodeToMemory = pem.EncodeToMemory
 // PassCode generates a 6 or 8 digits passcode for the current time.
 // The output string will be eg. "123456" or "12345678".
 func (k *Key) PassCode() (string, error) {
-	//nolint:wrapcheck // we won't wrap the error here
-	return totp.GenerateCodeCustom(
+	return newDefaultProvider().generateCode(
 		k.Secret.Base32(),
 		time.Now().UTC(),
-		totp.ValidateOpts{
-			Period:    k.Options.Period,
-			Skew:      k.Options.Skew,
-			Digits:    k.Options.Digits.OTPDigits(),
-			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
-			Encoder:   otp.EncoderDefault,
-		},
+		k.Options.Period,
+		k.Options.Digits,
+		k.Options.Algorithm,
 	)
 }
 
 // PassCodeCustom is similar to PassCode() but allows you to specify the time
 // to generate the passcode.
 func (k *Key) PassCodeCustom(genTime time.Time) (string, error) {
-	//nolint:wrapcheck // we won't wrap the error here
-	return totp.GenerateCodeCustom(
+	return newDefaultProvider().generateCode(
 		k.Secret.Base32(),
 		genTime.UTC(),
-		totp.ValidateOpts{
-			Period:    k.Options.Period,
-			Skew:      k.Options.Skew,
-			Digits:    k.Options.Digits.OTPDigits(),
-			Algorithm: k.Options.Algorithm.OTPAlgorithm(),
-			Encoder:   otp.EncoderDefault,
-		},
+		k.Options.Period,
+		k.Options.Digits,
+		k.Options.Algorithm,
 	)
 }
 

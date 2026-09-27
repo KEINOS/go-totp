@@ -10,7 +10,6 @@ import (
 
 // Constants for the default values of the options.
 const (
-	OptionAlgorithmDefault          = Algorithm("SHA1") // Google Authenticator does not work other than SHA1.
 	OptionDigitsDefault             = Digits(6)         // Google Authenticator does not work other than 6 digits.
 	OptionPeriodDefault             = uint(30)          // 30 seconds is recommended in RFC-6238.
 	OptionSecretSizeDefault         = uint(128)         // 128 Bytes.

@@ -172,12 +172,12 @@ func ExampleAlgorithm() {
 
 	fmt.Println("Algorithm:", algo.String())
 	fmt.Println("Algorithm ID:", algo.ID())
-	fmt.Printf("Type: %T\n", algo.OTPAlgorithm())
+	fmt.Printf("Type: %T\n", algo)
 	//
 	// Output:
 	// Algorithm: SHA512
 	// Algorithm ID: 2
-	// Type: otp.Algorithm
+	// Type: totp.Algorithm
 }
 
 func ExampleAlgorithm_IsSupported() {
@@ -204,7 +204,7 @@ func ExampleDigits() {
 	digits := totp.NewDigitsInt(8)
 
 	fmt.Println("Digits:", digits)
-	fmt.Println("Digits ID:", digits.OTPDigits())
+	fmt.Println("Digits ID:", digits)
 
 	// DigitsEight is equivalent to NewDigits(8)
 	if totp.DigitsEight == totp.NewDigitsInt(8) {
